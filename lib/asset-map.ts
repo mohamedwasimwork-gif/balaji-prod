@@ -1,0 +1,22 @@
+// Maps Framer CDN hash → local /public/images/ path for traceability
+export const ASSET_MAP: Record<string, string> = {
+  'JkOGUpDEBQ5FeI9HVAlSpoDzs0.jpg': '/images/hero-bg.jpg',
+  'EGprxWBupmsG38b8hHxhm6DAk.jpg': '/images/about-factory.jpg',
+  'btHCzx2hdyQWWxyPoY0KpkOuEQ.jpg': '/images/intro-foundations.jpg',
+  'BtL5sG0xQ2S16MDLoaL1CRc4wTg.jpg': '/images/intro-hybrid.jpg',
+  'GIqRjUzX1PVrHe8XSHRJsS0YaA.jpg': '/images/intro-solar.jpg',
+  '8ILyToNATa77bK3Tye69T6GjV9E.png': '/images/values-graphic.png',
+  'gW8yYsacHiHbYJruEx2Ek3thkIk.webp': '/images/project-regen.webp',
+  'PE2Q4nZMGYEuJYrAk8d0swPrSY.webp': '/images/project-gamesa.webp',
+  'XS2mjgEm7qmbFX2tekHUaHlDYM.jpg': '/images/cert-iso-14001.jpg',
+  'HMLilDT8OVWhgIQHKvgb3S7J2gw.jpg': '/images/cta-2.jpg',
+  'shn0Pai8ytDvo0JvLIJCUOY.webp': '/images/cta-3.webp',
+  '7nneOn1QEgQcom6NcWmKaNb2S4.jpg': '/images/cta-4.jpg',
+  'bg3xh7tsXApHOj7uearTm270jl8.svg': '/images/pattern-1.svg',
+  'xAvkgKdJvB2GjRJX2r7kh3rlk.svg': '/images/pattern-2.svg',
+  'wxxB24s4RRIqaNPjMpflC6BaY.png': '/images/logo-light.png',
+  'dEHVUVMVYid0cRUOdMhnl6BOAc.png': '/images/logo-dark.png',
+  'WqXFJT0VBDWmZte8NVZqXuiRHY.png': '/images/favicon-light.png',
+  '1roggZCFwjOq0IDRbFbK792JUQE.png': '/images/favicon-dark.png',
+  '7LDZXjNOs4SP4CDKzNOlnREoA.png': '/og-image.png',
+};

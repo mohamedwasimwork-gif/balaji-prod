@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Color tokens ─── */
+:root {
+  --color-primary: rgb(20, 60, 255);
+  --color-primary-hover: rgb(39, 99, 171);
+  --color-link: rgb(0, 153, 255);
+  --color-white: rgb(255, 255, 255);
+  --color-black: rgb(0, 0, 0);
+  --color-text: rgb(24, 24, 24);
+  --color-text-muted: rgba(24, 24, 24, 0.8);
+  --color-text-subtle: rgba(33, 33, 33, 0.8);
+  --color-border: rgba(0, 0, 0, 0.2);
+  --color-bg-light: rgb(245, 245, 245);
+  --color-bg-soft: rgb(240, 240, 240);
+  --color-dark-1: rgb(12, 12, 12);
+
+  /* Achievement-bar palette */
+  --color-state-karnataka: rgb(96, 108, 56);
+  --color-state-andhra: rgb(188, 108, 37);
+  --color-state-tamilnadu: rgb(40, 54, 24);
+  --color-state-maharashtra: rgb(221, 161, 94);
+  --color-state-mp: rgb(173, 193, 120);
+}
+
+/* ─── Base resets ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  /* Prevent iOS landscape text auto-zoom */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  color: var(--color-text);
+  background: var(--color-white);
+  /* Guard against any descendant element accidentally inducing horizontal scroll */
+  overflow-x: hidden;
+  /* Better mobile font rendering + base size for inputs (prevents iOS auto-zoom) */
+  font-size: 16px;
+}
+
+/* Respect prefers-reduced-motion across all components */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Typography utilities (@layer components) ─── */
+/* Extracted verbatim from Framer style IDs */
+@layer components {
+  /* XRUMGlvHb — Hero H1 */
+  .type-hero {
+    font-family: var(--font-karma), serif;
+    font-size: 64px;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1.1em;
+  }
+  @media (min-width: 810px) and (max-width: 1199.98px) {
+    .type-hero {
+      font-size: 56px;
+    }
+  }
+  @media (max-width: 809.98px) {
+    .type-hero {
+      font-size: 40px;
+    }
+  }
+
+  /* D5HIFNxEf — H2 Section heading */
+  .type-h2 {
+    font-family: var(--font-karma), serif;
+    font-size: 56px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.2em;
+  }
+  @media (min-width: 810px) and (max-width: 1199.98px) {
+    .type-h2 {
+      font-size: 42px;
+    }
+  }
+  @media (max-width: 809.98px) {
+    .type-h2 {
+      font-size: 36px;
+    }
+  }
+
+  /* TcrnQCOdz — H3 Card heading */
+  .type-h3 {
+    font-family: var(--font-karma), serif;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.3em;
+  }
+
+  /* RhPmy2Hkc — H4 variant */
+  .type-h4 {
+    font-family: var(--font-karma), serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0em;
+    line-height: 1.4em;
+  }
+
+  /* OpNTRM7dB — Body large */
+  .type-body-lg {
+    font-family: var(--font-karma), serif;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.5em;
+  }
+
+  /* Body (standard paragraph) */
+  .type-body {
+    font-family: var(--font-karma), serif;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.6em;
+  }
+
+  /* CfnpqA3qn — Body small */
+  .type-body-sm {
+    font-family: var(--font-inter), var(--font-dm-sans), sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.5em;
+  }
+
+  /* I7kTJZkG_ — Button text */
+  .type-btn {
+    font-family: var(--font-inter), var(--font-dm-sans), sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0em;
+    line-height: 1.2em;
+  }
+
+  /* Stat numbers (Host Grotesk accent) */
+  .type-stat {
+    font-family: var(--font-host-grotesk), sans-serif;
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1em;
+  }
+
+  /* Pill / label text (Karma 500) */
+  .type-label {
+    font-family: var(--font-karma), serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0em;
+    line-height: 1.2em;
+  }
+}
+
+/* ─── Scroll behavior ─── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+  }
+
+  img {
+    max-width: 100%;
+  }
+}

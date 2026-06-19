@@ -1,0 +1,91 @@
+import type { Config } from 'tailwindcss';
+
+export default {
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './dashboard-src/**/*.{ts,tsx}'],
+  theme: {
+    screens: {
+      // Marketing breakpoints
+      mobile: { max: '809.98px' },
+      tablet: { min: '810px', max: '1199.98px' },
+      desktop: { min: '1200px' },
+      
+      // Standard Tailwind breakpoints (used by dashboard)
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
+    },
+    extend: {
+      colors: {
+        primary: 'var(--color-primary)',
+        'primary-hover': 'var(--color-primary-hover)',
+        link: 'var(--color-link)',
+        text: 'var(--color-text)',
+        'text-muted': 'var(--color-text-muted)',
+        'text-subtle': 'var(--color-text-subtle)',
+        border: 'var(--color-border)',
+        'bg-light': 'var(--color-bg-light)',
+        'bg-soft': 'var(--color-bg-soft)',
+        'dark-1': 'var(--color-dark-1)',
+        karnataka: 'var(--color-state-karnataka)',
+        andhra: 'var(--color-state-andhra)',
+        tamilnadu: 'var(--color-state-tamilnadu)',
+        maharashtra: 'var(--color-state-maharashtra)',
+        mp: 'var(--color-state-mp)',
+        forest: {
+          50:  '#f0faf2',
+          100: '#dcf3e3',
+          200: '#bbead0',
+          300: '#89d6ae',
+          400: '#54bc85',
+          500: '#2da866',
+          600: '#1e8f54',
+          700: '#186b3e',
+          800: '#145530',
+          900: '#0e3d23',
+          950: '#07251a',
+        },
+        amber: {
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+        },
+      },
+      fontFamily: {
+        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        host: ['var(--font-host-grotesk)', 'sans-serif'],
+        geist: ['var(--font-geist-sans)', 'sans-serif'],
+        karma: ['var(--font-karma)', 'serif'],
+        manrope: ['var(--font-manrope)', 'sans-serif'],
+        mono: ['var(--font-fragment-mono)', 'monospace'],
+        inter: ['var(--font-inter)', 'sans-serif'],
+      },
+      fontSize: {
+        hero: ['64px', { lineHeight: '1.1em', letterSpacing: '-0.04em' }],
+        'hero-tablet': ['56px', { lineHeight: '1.1em', letterSpacing: '-0.04em' }],
+        'hero-mobile': ['40px', { lineHeight: '1.1em', letterSpacing: '-0.04em' }],
+        'section-h2': ['56px', { lineHeight: '1.2em', letterSpacing: '-0.03em' }],
+        'section-h2-tablet': ['42px', { lineHeight: '1.2em', letterSpacing: '-0.03em' }],
+        'section-h2-mobile': ['36px', { lineHeight: '1.2em', letterSpacing: '-0.03em' }],
+        'card-h3': ['24px', { lineHeight: '1.3em', letterSpacing: '-0.03em' }],
+        'card-h4': ['20px', { lineHeight: '1.4em', letterSpacing: '0em' }],
+        'body-lg': ['16px', { lineHeight: '1.5em', letterSpacing: '-0.02em' }],
+        'body-sm': ['14px', { lineHeight: '1.5em', letterSpacing: '-0.02em' }],
+        btn: ['14px', { lineHeight: '1.2em', letterSpacing: '0em' }],
+        stat: ['40px', { lineHeight: '1em', letterSpacing: '-0.03em' }],
+        label: ['13px', { lineHeight: '1.2em', letterSpacing: '0em' }],
+      },
+      maxWidth: {
+        container: '1200px',
+        'container-narrow': '1128px',
+      },
+      spacing: {
+        section: '80px',
+        'section-sm': '48px',
+        container: '1200px',
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config;
