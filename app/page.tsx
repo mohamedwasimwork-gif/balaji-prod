@@ -1,4 +1,3 @@
-import AboutSection from '@/components/sections/AboutSection';
 import BenefitSection from '@/components/sections/BenefitSection';
 import BuildCtaSection from '@/components/sections/BuildCtaSection';
 import CertificationsSection from '@/components/sections/CertificationsSection';
@@ -18,10 +17,10 @@ export default function HomePage() {
       <ResourcesSection limit={6} showViewAll />
       <BenefitSection />
       <FactSection />
-      <AboutSection />
       <FaqSection />
       <CertificationsSection />
       <BuildCtaSection />
     </>
   );
 }
+
