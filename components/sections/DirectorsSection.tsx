@@ -11,8 +11,8 @@ import SectionWrapper from '@/components/ui/SectionWrapper';
 
 const DIRECTORS = [
   {
-    name: 'R. Balaji',
-    role: 'Founder & Managing Director',
+    name: 'Balakrishnan P',
+    role: 'Founder & MD of Balaji Groups',
     image: '/images/director-balaji.png',
   },
   {
@@ -29,6 +29,21 @@ const DIRECTORS = [
     name: 'Dr. A. Subramanian',
     role: 'Head of Engineering & Tech',
     image: '/images/director-subramanian.png',
+  },
+  {
+    name: 'Victor Jebaponraj',
+    role: 'Legal Director of Balaji Wind Energy Pvt Ltd',
+    image: '/images/director-victor.png',
+  },
+  {
+    name: 'Ramesh Shankkar Sanai',
+    role: 'Technical Director of Balaji Wind Energy Pvt Ltd',
+    image: '/images/director-ramesh.png',
+  },
+  {
+    name: 'Sasi Kumar',
+    role: 'Project Head, Balaji Groups',
+    image: '/images/director-sasi.png',
   },
 ];
 
@@ -53,7 +68,7 @@ export default function DirectorsSection() {
           </ParagraphBlurIn>
         </div>
 
-        {/* 4 Directors Grid */}
+        {/* Leadership Grid */}
         <div className="grid gap-8 mobile:grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4">
           {DIRECTORS.map((director, i) => (
             <ScrollFadeUp key={director.name} delay={i * 0.1} distance={30}>

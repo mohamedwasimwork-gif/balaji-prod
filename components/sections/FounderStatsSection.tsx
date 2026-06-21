@@ -99,10 +99,10 @@ export default function FounderStatsSection() {
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <span className="font-inter font-semibold text-text text-[16px] leading-tight">
-                    Balaji
+                    Balakrishnan P
                   </span>
                   <span className="font-inter text-text-muted text-[14px] leading-tight opacity-80">
-                    Founder &amp; Director
+                    Founder &amp; MD of Balaji Groups
                   </span>
                 </div>
               </div>
