@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 
 import AchievementsListSection from '@/components/sections/AchievementsListSection';
 import BuildCtaSection from '@/components/sections/BuildCtaSection';
-import FounderStatsSection from '@/components/sections/FounderStatsSection';
 import ProcessSection from '@/components/sections/ProcessSection';
 import SolutionsHeroSection from '@/components/sections/SolutionsHeroSection';
 import WindSolarSolutionsSection from '@/components/sections/WindSolarSolutionsSection';
@@ -18,10 +17,10 @@ export default function SolutionsPage() {
     <>
       <SolutionsHeroSection />
       <WindSolarSolutionsSection />
-      <FounderStatsSection />
       <AchievementsListSection />
       <ProcessSection />
       <BuildCtaSection />
     </>
   );
 }
+

@@ -5,6 +5,7 @@ import AboutSection from '@/components/sections/AboutSection';
 import BuildCtaSection from '@/components/sections/BuildCtaSection';
 import CompaniesSection from '@/components/sections/CompaniesSection';
 import DirectorsSection from '@/components/sections/DirectorsSection';
+import FounderStatsSection from '@/components/sections/FounderStatsSection';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -18,6 +19,7 @@ export default function AboutPage() {
       <AboutHeroSection />
       <AboutSection />
       <CompaniesSection />
+      <FounderStatsSection />
       <DirectorsSection />
       <BuildCtaSection />
     </>
