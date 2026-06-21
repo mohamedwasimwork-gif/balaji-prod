@@ -278,7 +278,7 @@ export default function FactSection() {
 
         {/* Vertical bar chart container */}
         <div
-          className="flex items-end gap-0 overflow-hidden rounded-2xl h-[550px] bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200/40 dark:border-neutral-700/10 shadow-inner"
+          className="flex items-end gap-0 overflow-hidden rounded-2xl h-[550px]"
         >
           <AnimatePresence initial={false} mode="popLayout">
             {activeData.map((stat, i) => (
