@@ -135,16 +135,16 @@ export const PROJECTS: Project[] = [
   },
   {
     slug: 'adani-solar-epc-rajasthan',
-    title: 'Adani Solar EPC – Rajasthan',
-    category: 'Solar EPC – Turnkey',
+    title: 'Adani Wind EPC – Rajasthan',
+    category: 'Wind EPC – Turnkey',
     date: 'Jan 18, 2025',
     image: '/images/intro-solar.jpg',
     client: 'Adani Green Energy Ltd',
     location: 'Jodhpur, Rajasthan',
     overview:
-      'End-to-end solar EPC execution for a 50 MW ground-mounted solar plant in Rajasthan, covering civil, structural, electrical, and commissioning works.',
+      'End-to-end wind EPC execution for a 50 MW wind power plant in Rajasthan, covering civil, structural, electrical, and commissioning works.',
     scope: [
-      'MMS structure installation for 50 MW capacity',
+      'Complete WTG foundation construction for 50 MW capacity',
       'DC and AC cabling works',
       'Inverter and transformer installation',
       'Grid connectivity and commissioning',

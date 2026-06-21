@@ -18,7 +18,7 @@ export default function ResourcesSection({
   excludeSlug,
   showViewAll = true,
 }: ResourcesSectionProps) {
-  const projects = PROJECTS.filter((p) => p.slug !== excludeSlug).slice(0, limit ?? 3);
+  const projects = PROJECTS.filter((p) => p.slug !== excludeSlug && p.status !== 'ongoing').slice(0, limit ?? 3);
 
   return (
     <SectionWrapper id="resources-section" className="py-12 desktop:py-24">

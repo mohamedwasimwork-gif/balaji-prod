@@ -14,7 +14,7 @@ export default function HomePage() {
       <HeroSection />
       <WhoSection />
       <IntroductionSection />
-      <ResourcesSection limit={6} showViewAll />
+      <ResourcesSection limit={9} showViewAll />
       <BenefitSection />
       <FactSection />
       <FaqSection />
