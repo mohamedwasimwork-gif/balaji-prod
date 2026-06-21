@@ -16,21 +16,6 @@ const DIRECTORS = [
     image: '/images/director-balaji.png',
   },
   {
-    name: 'Rahul Balaji',
-    role: 'Director & Head of Operations',
-    image: '/images/director-rahul.png',
-  },
-  {
-    name: 'S. Meenakshi',
-    role: 'Director of Finance',
-    image: '/images/director-meenakshi.png',
-  },
-  {
-    name: 'Dr. A. Subramanian',
-    role: 'Head of Engineering & Tech',
-    image: '/images/director-subramanian.png',
-  },
-  {
     name: 'Victor Jebaponraj',
     role: 'Legal Director of Balaji Wind Energy Pvt Ltd',
     image: '/images/director-victor.png',
