@@ -204,33 +204,33 @@ export default function FactSection() {
             <div className="flex bg-neutral-200/50 dark:bg-neutral-800/60 p-1 rounded-full border border-neutral-300/20 dark:border-neutral-700/20 max-w-fit">
               <button
                 onClick={() => setView('location')}
-                className={`px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter ${
-                  view === 'location' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'
-                }`}
+                className="px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter"
               >
                 {view === 'location' && (
                   <motion.span
                     layoutId="active-view-tab"
-                    className="absolute inset-0 bg-[#606c38] rounded-full -z-10"
+                    className="absolute inset-0 bg-[#606c38] rounded-full"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                Location
+                <span className={`relative z-10 ${view === 'location' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'}`}>
+                  Location
+                </span>
               </button>
               <button
                 onClick={() => setView('company')}
-                className={`px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter ${
-                  view === 'company' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'
-                }`}
+                className="px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter"
               >
                 {view === 'company' && (
                   <motion.span
                     layoutId="active-view-tab"
-                    className="absolute inset-0 bg-[#606c38] rounded-full -z-10"
+                    className="absolute inset-0 bg-[#606c38] rounded-full"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                Company
+                <span className={`relative z-10 ${view === 'company' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'}`}>
+                  Company
+                </span>
               </button>
             </div>
 
@@ -244,33 +244,33 @@ export default function FactSection() {
             <div className="flex bg-neutral-200/50 dark:bg-neutral-800/60 p-1 rounded-full border border-neutral-300/20 dark:border-neutral-700/20 max-w-fit self-start sm:self-auto">
               <button
                 onClick={() => setStatus('completed')}
-                className={`px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter ${
-                  status === 'completed' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'
-                }`}
+                className="px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter"
               >
                 {status === 'completed' && (
                   <motion.span
                     layoutId="active-status-tab"
-                    className="absolute inset-0 bg-[#606c38] rounded-full -z-10"
+                    className="absolute inset-0 bg-[#606c38] rounded-full"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                Completed
+                <span className={`relative z-10 ${status === 'completed' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'}`}>
+                  Completed
+                </span>
               </button>
               <button
                 onClick={() => setStatus('ongoing')}
-                className={`px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter ${
-                  status === 'ongoing' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'
-                }`}
+                className="px-5 py-2 text-xs font-semibold rounded-full relative transition-colors duration-300 font-inter"
               >
                 {status === 'ongoing' && (
                   <motion.span
                     layoutId="active-status-tab"
-                    className="absolute inset-0 bg-[#606c38] rounded-full -z-10"
+                    className="absolute inset-0 bg-[#606c38] rounded-full"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                Ongoing
+                <span className={`relative z-10 ${status === 'ongoing' ? 'text-white' : 'text-[#606c38] hover:text-[#4e5830]'}`}>
+                  Ongoing
+                </span>
               </button>
             </div>
           </div>
