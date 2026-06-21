@@ -17,7 +17,7 @@ interface ProjectDataType {
 // 1. COMPLETED PROJECTS BY LOCATION
 const COMPLETED_BY_LOCATION: ProjectDataType[] = [
   { label: 'Tamil Nadu', fullLabel: 'Tamil Nadu', mw: 1444.8 },
-  { label: 'Karnataka', fullLabel: 'Karnataka', mw: 454 },
+  { label: 'Karnataka', fullLabel: 'Karnataka', mw: 704 },
   { label: 'Madhya Pradesh', fullLabel: 'Madhya Pradesh', mw: 150 },
   { label: 'Andhra Pradesh', fullLabel: 'Andhra Pradesh', mw: 112 },
   { label: 'Maharashtra', fullLabel: 'Maharashtra', mw: 32 },
@@ -26,9 +26,8 @@ const COMPLETED_BY_LOCATION: ProjectDataType[] = [
 
 // 2. ONGOING PROJECTS BY LOCATION
 const ONGOING_BY_LOCATION: ProjectDataType[] = [
-  { label: 'Karnataka', fullLabel: 'Karnataka (Jindal Projects)', mw: 454 },
-  { label: 'Gujarat', fullLabel: 'Gujarat (Adani Projects)', mw: 180 },
-  { label: 'Tamil Nadu', fullLabel: 'Tamil Nadu (Sprng & Tata Power Projects)', mw: 1 },
+  { label: 'Karnataka', fullLabel: 'Karnataka', mw: 455 },
+  { label: 'Tamil Nadu', fullLabel: 'Tamil Nadu', mw: 374.3 },
 ];
 
 // 3. COMPLETED PROJECTS BY COMPANY
@@ -45,12 +44,11 @@ const COMPLETED_BY_COMPANY: ProjectDataType[] = [
 
 // 4. ONGOING PROJECTS BY COMPANY
 const ONGOING_BY_COMPANY: ProjectDataType[] = [
-  { label: 'Sprng Energy', fullLabel: 'Sprng Energy', mw: 300 },
-  { label: 'Tata Power (WTG)', fullLabel: 'Tata Power (WTG Foundation Work)', mw: 246.6 },
-  { label: 'Adani', fullLabel: 'Adani', mw: 180 },
+  { label: 'Sunsure Energy', fullLabel: 'Sunsure Energy Ltd.', mw: 300 },
   { label: 'Jindal Renewables', fullLabel: 'Jindal Renewables', mw: 155 },
-  { label: 'Tata Power (BOP)', fullLabel: 'Tata Power (Balance of Plant - BOP Work)', mw: 83.6 },
-  { label: 'Tata Power (PSS)', fullLabel: 'Tata Power (PSS Work)', mw: 1 },
+  { label: 'Heft Energy', fullLabel: 'Heft Energy Pvt. Ltd.', mw: 148.4 },
+  { label: 'Tata Power (WTG)', fullLabel: 'Tata Power Renewables (WTG Foundations)', mw: 132.3 },
+  { label: 'Tata Power (BOP)', fullLabel: 'Tata Power Renewables (BOP Works)', mw: 93.6 },
 ];
 
 const BAR_COLORS = [
