@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import BlurInWords from '@/components/motion/BlurInWords';
 import ScrollFadeUp from '@/components/motion/ScrollFadeUp';
@@ -71,7 +71,6 @@ function VerticalBar({
   fullLabel,
   value,
   maxValue,
-  maxChartHeight,
   color,
   delay,
 }: {
@@ -79,23 +78,23 @@ function VerticalBar({
   fullLabel: string;
   value: number;
   maxValue: number;
-  maxChartHeight: number;
   color: string;
   delay: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
-  const MIN_HEIGHT = 60; // px
-  const MAX_CHART_HEIGHT = maxChartHeight;
-  const scaledHeight = (value / maxValue) * MAX_CHART_HEIGHT;
-  const finalHeight = Math.max(scaledHeight, MIN_HEIGHT);
+  const MIN_BAR_HEIGHT = 110;
+  const MAX_BAR_HEIGHT = 500;
+
+  const scaledHeight = Math.sqrt(value / maxValue) * MAX_BAR_HEIGHT;
+  const finalHeight = Math.max(scaledHeight, MIN_BAR_HEIGHT);
 
   return (
     <motion.div
       ref={ref}
       layout
-      className="flex flex-1 min-w-0 flex-col justify-between px-1 py-3 sm:px-2.5 sm:py-4 tablet:px-3 desktop:px-4 desktop:py-5 border-r border-white/5 last:border-0"
+      className="flex flex-1 min-w-0 flex-col justify-between px-1 py-4 sm:px-2.5 sm:py-5 tablet:px-3 desktop:px-4 border-r border-white/5 last:border-0"
       style={{ backgroundColor: color }}
       initial={{ height: 0, opacity: 0 }}
       animate={inView ? { height: finalHeight, opacity: 1 } : { height: 0, opacity: 0 }}
@@ -122,19 +121,6 @@ function VerticalBar({
 export default function FactSection() {
   const [view, setView] = useState<'location' | 'company'>('location');
   const [status, setStatus] = useState<'completed' | 'ongoing'>('completed');
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [chartHeight, setChartHeight] = useState(420); // Default to desktop height
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const updateHeight = () => {
-      setChartHeight(containerRef.current?.clientHeight || 420);
-    };
-    updateHeight();
-    window.addEventListener('resize', updateHeight);
-    return () => window.removeEventListener('resize', updateHeight);
-  }, []);
 
   const getActiveData = () => {
     if (view === 'location') {
@@ -277,8 +263,7 @@ export default function FactSection() {
 
         {/* Vertical bar chart container */}
         <div
-          ref={containerRef}
-          className="flex items-end gap-0 overflow-hidden rounded-2xl h-[320px] desktop:h-[420px] bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200/40 dark:border-neutral-700/10 shadow-inner"
+          className="flex items-end gap-0 overflow-hidden rounded-2xl h-[550px] bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200/40 dark:border-neutral-700/10 shadow-inner"
         >
           <AnimatePresence initial={false} mode="popLayout">
             {activeData.map((stat, i) => (
@@ -288,7 +273,6 @@ export default function FactSection() {
                 fullLabel={stat.fullLabel}
                 value={stat.mw}
                 maxValue={maxMw}
-                maxChartHeight={chartHeight}
                 color={stat.color}
                 delay={i * 0.03}
               />
