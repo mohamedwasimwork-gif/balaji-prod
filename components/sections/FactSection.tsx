@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import BlurInWords from '@/components/motion/BlurInWords';
 import ScrollFadeUp from '@/components/motion/ScrollFadeUp';
@@ -69,21 +69,27 @@ const getColor = (index: number): string => BAR_COLORS[index % BAR_COLORS.length
 function VerticalBar({
   label,
   fullLabel,
-  mw,
+  value,
+  maxValue,
+  maxChartHeight,
   color,
   delay,
-  maxMw,
 }: {
   label: string;
   fullLabel: string;
-  mw: number;
+  value: number;
+  maxValue: number;
+  maxChartHeight: number;
   color: string;
   delay: number;
-  maxMw: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
-  const heightPct = (mw / maxMw) * 100;
+
+  const MIN_HEIGHT = 60; // px
+  const MAX_CHART_HEIGHT = maxChartHeight;
+  const scaledHeight = (value / maxValue) * MAX_CHART_HEIGHT;
+  const finalHeight = Math.max(scaledHeight, MIN_HEIGHT);
 
   return (
     <motion.div
@@ -91,16 +97,16 @@ function VerticalBar({
       layout
       className="flex flex-1 min-w-0 flex-col justify-between px-1 py-3 sm:px-2.5 sm:py-4 tablet:px-3 desktop:px-4 desktop:py-5 border-r border-white/5 last:border-0"
       style={{ backgroundColor: color }}
-      initial={{ height: '0%', opacity: 0 }}
-      animate={inView ? { height: `${heightPct}%`, opacity: 1 } : { height: '0%', opacity: 0 }}
-      exit={{ height: '0%', opacity: 0, width: 0 }}
+      initial={{ height: 0, opacity: 0 }}
+      animate={inView ? { height: finalHeight, opacity: 1 } : { height: 0, opacity: 0 }}
+      exit={{ height: 0, opacity: 0, width: 0 }}
       transition={{ duration: 0.6, delay, ease: [0.44, 0, 0.56, 1] }}
-      title={`${fullLabel}: ${mw.toLocaleString()} MW`}
+      title={`${fullLabel}: ${value.toLocaleString()} MW`}
     >
       {/* Top: value + separator line */}
       <div className="flex flex-col gap-2">
         <p className="font-manrope text-[10px] sm:text-xs tablet:text-base desktop:text-lg font-bold text-white leading-tight">
-          {mw.toLocaleString()} MW
+          {value.toLocaleString()} MW
         </p>
         <div className="h-px w-4 sm:w-8 desktop:w-10 bg-white/40" />
       </div>
@@ -116,6 +122,19 @@ function VerticalBar({
 export default function FactSection() {
   const [view, setView] = useState<'location' | 'company'>('location');
   const [status, setStatus] = useState<'completed' | 'ongoing'>('completed');
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [chartHeight, setChartHeight] = useState(420); // Default to desktop height
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateHeight = () => {
+      setChartHeight(containerRef.current?.clientHeight || 420);
+    };
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
 
   const getActiveData = () => {
     if (view === 'location') {
@@ -258,6 +277,7 @@ export default function FactSection() {
 
         {/* Vertical bar chart container */}
         <div
+          ref={containerRef}
           className="flex items-end gap-0 overflow-hidden rounded-2xl h-[320px] desktop:h-[420px] bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200/40 dark:border-neutral-700/10 shadow-inner"
         >
           <AnimatePresence initial={false} mode="popLayout">
@@ -266,10 +286,11 @@ export default function FactSection() {
                 key={`${view}-${status}-${stat.label}`} // Composite key ensures animation when dataset changes
                 label={stat.label}
                 fullLabel={stat.fullLabel}
-                mw={stat.mw}
+                value={stat.mw}
+                maxValue={maxMw}
+                maxChartHeight={chartHeight}
                 color={stat.color}
                 delay={i * 0.03}
-                maxMw={maxMw}
               />
             ))}
           </AnimatePresence>
