@@ -90,6 +90,12 @@ function VerticalBar({
   const scaledHeight = Math.sqrt(value / maxValue) * MAX_BAR_HEIGHT;
   const finalHeight = Math.max(scaledHeight, MIN_BAR_HEIGHT);
 
+  const heightRatio = (finalHeight - MIN_BAR_HEIGHT) / (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT);
+
+  const valueFontSize = `clamp(11px, calc(0.65rem + ${heightRatio * 1.0}vw), ${12 + heightRatio * 14}px)`;
+  const labelFontSize = `clamp(9px, calc(0.55rem + ${heightRatio * 0.75}vw), ${10 + heightRatio * 7}px)`;
+  const dividerWidth = `${Math.max(16, 16 + heightRatio * 24)}px`;
+
   return (
     <motion.div
       ref={ref}
@@ -104,14 +110,23 @@ function VerticalBar({
     >
       {/* Top: value + separator line */}
       <div className="flex flex-col gap-2">
-        <p className="font-manrope text-[10px] sm:text-xs tablet:text-base desktop:text-lg font-bold text-white leading-tight">
+        <p 
+          className="font-manrope font-bold text-white leading-tight transition-all duration-300"
+          style={{ fontSize: valueFontSize }}
+        >
           {value.toLocaleString()} MW
         </p>
-        <div className="h-px w-4 sm:w-8 desktop:w-10 bg-white/40" />
+        <div 
+          className="h-px bg-white/40 transition-all duration-300" 
+          style={{ width: dividerWidth }}
+        />
       </div>
 
       {/* Bottom: state/company name */}
-      <p className="font-manrope text-[9px] sm:text-[10px] tablet:text-xs desktop:text-sm font-medium text-white truncate">
+      <p 
+        className="font-manrope font-medium text-white truncate transition-all duration-300"
+        style={{ fontSize: labelFontSize }}
+      >
         {label}
       </p>
     </motion.div>
