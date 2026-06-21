@@ -11,23 +11,23 @@ import SectionWrapper from '@/components/ui/SectionWrapper';
 const COMPANIES = [
   {
     id: 'civil-contractors',
-    title: 'Balaji & Co. Civil Contractors',
+    title: 'Balaji & Co',
     description:
-      'Our founding division specializing in heavy civil engineering, complex WTG foundations, crane pad construction, and pathway development.',
+      'Our signature founding division specializing in high-complexity heavy civil engineering, wind turbine generator (WTG) foundations, crane platform development, internal site access roads, and comprehensive land preparation for utility-scale green projects.',
     icon: <Building2 size={24} strokeWidth={1.75} />,
   },
   {
     id: 'renewable-energy',
-    title: 'Balaji Renewable Energy Private Limited',
+    title: 'Balaji Wind Energy Pvt.LTD',
     description:
-      'Our dedicated clean energy arm offering end-to-end solar and wind EPC installations, grid evacuation lines, and substation design.',
+      'The dedicated wind project execution arm of the group, focused on complete turnkey wind energy EPC installations, grid synchronization, transmission line setups, and structural engineering compliance for modern multi-megawatt turbine installations.',
     icon: <Sun size={24} strokeWidth={1.75} />,
   },
   {
     id: 'green-infrastructures',
-    title: 'Balaji Green Infrastructures',
+    title: 'Balaji Agencies',
     description:
-      'Focused on statutory liaisoning, land acquisition with clear titles, site preparation, and logistical support across projects.',
+      'Providing crucial auxiliary and support functions including land coordination and statutory liaisoning, machinery and equipment leasing, raw materials logistics management, and securing approvals from state and central electricity boards.',
     icon: <Compass size={24} strokeWidth={1.75} />,
   },
 ];
