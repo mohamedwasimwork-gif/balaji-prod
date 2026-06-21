@@ -9,6 +9,7 @@ export interface Project {
   overview: string;
   scope: string[];
   highlights: string[];
+  status?: 'completed' | 'ongoing';
 }
 
 export const PROJECTS: Project[] = [
@@ -34,6 +35,7 @@ export const PROJECTS: Project[] = [
       'Zero safety incidents',
       'Recognized milestone project in Tamil Nadu',
     ],
+    status: 'completed',
   },
   {
     slug: 'regen-powertech-wind-foundations-south-india',
@@ -57,6 +59,7 @@ export const PROJECTS: Project[] = [
       'Efficient material and manpower deployment',
       'Smooth coordination across multiple locations',
     ],
+    status: 'completed',
   },
   {
     slug: 'gamesa-wind-projects-karnataka',
@@ -80,6 +83,7 @@ export const PROJECTS: Project[] = [
       'Delivered across multiple locations',
       'Strong compliance with OEM specifications',
     ],
+    status: 'completed',
   },
   {
     slug: 'renew-power-wind-projects-karnataka',
@@ -103,6 +107,7 @@ export const PROJECTS: Project[] = [
       'Zero safety incidents throughout execution',
       'On-time project completion',
     ],
+    status: 'completed',
   },
   {
     slug: 'suzlon-wind-projects-tamil-nadu',
@@ -126,6 +131,7 @@ export const PROJECTS: Project[] = [
       'Zero safety incidents',
       'Strong OEM compliance throughout',
     ],
+    status: 'completed',
   },
   {
     slug: 'adani-solar-epc-rajasthan',
@@ -149,6 +155,201 @@ export const PROJECTS: Project[] = [
       'Full turnkey delivery',
       'Meets international quality benchmarks',
     ],
+    status: 'completed',
+  },
+  // NEW COMPLETED PROJECTS
+  {
+    slug: 'nordex-india-wind-projects-mulanur',
+    title: 'Nordex Wind Projects – Mulanur',
+    category: 'Wind Power Foundations',
+    date: 'Nov 12, 2024',
+    image: '/images/project-regen.webp',
+    client: 'Nordex India Pvt. Ltd.',
+    location: 'Mulanur, Tamil Nadu',
+    overview:
+      'Civil foundations for 3.0 MW WTG, including acquisition of land, approvals, crane pads and pre-assembly slabs for a total capacity of 300MW at Mulanur.',
+    scope: [
+      'Civil foundations for 3.0 MW WTGs',
+      'Land acquisition and statutory approvals',
+      'Crane pads and pre-assembly slabs construction',
+      'Site development and infrastructure support',
+    ],
+    highlights: [
+      'Total capacity of 300 MW',
+      'Located in Mulanur, Tamil Nadu',
+      'Acquisition of land and full regulatory approvals',
+      'Completed to strict Nordex engineering specifications',
+    ],
+    status: 'completed',
+  },
+  {
+    slug: 'tata-power-wind-karur',
+    title: 'Tata Power Wind Project – Karur',
+    category: 'Wind Power Foundations',
+    date: 'Sep 25, 2024',
+    image: '/images/hero-bg.jpg',
+    client: 'Tata Power Company Ltd.',
+    location: 'Karur, Tamil Nadu',
+    overview:
+      'Construction of 27 units of SGRE 3.6 MW foundations for a 201.6 MW project at Karur, Tamil Nadu.',
+    scope: [
+      'Construction of 27 units of SGRE 3.6 MW WTG foundations',
+      'Full excavation, steel reinforcement and civil foundation works',
+      'Strict quality checks and structural concrete pouring',
+      'Site readiness and technical execution management',
+    ],
+    highlights: [
+      'Total project capacity of 201.6 MW',
+      'Supports high-capacity SGRE 3.6 MW wind turbines',
+      'Located in the wind-energy hub of Karur, Tamil Nadu',
+      'Delivered with exceptional quality and structural integrity',
+    ],
+    status: 'completed',
+  },
+  {
+    slug: 'sprng-energy-wind-karur',
+    title: 'Sprng Energy Wind Project – Karur',
+    category: 'Wind Power Foundations',
+    date: 'Aug 18, 2024',
+    image: '/images/project-gamesa.webp',
+    client: 'Sprng Energy Pvt. Ltd.',
+    location: 'Karur, Tamil Nadu',
+    overview:
+      'Construction of 16 units of EN3.3 MW WTG foundations, including crane pads and boom assemblies, Roads at karur, tamilnadu.',
+    scope: [
+      'Construction of 16 units of EN3.3 MW WTG foundations',
+      'Crane pads and boom assembly areas construction',
+      'Access roads development for heavy machinery movement',
+      'Civil works and foundation structural shuttering',
+    ],
+    highlights: [
+      'Supports EN3.3 MW wind turbine rating',
+      'Located in Karur, Tamil Nadu',
+      'Includes vital transport road networks and boom assemblies',
+      'Zero safety incidents throughout the execution lifecycle',
+    ],
+    status: 'completed',
+  },
+  // ONGOING PROJECTS
+  {
+    slug: 'jindal-renewables-koppal',
+    title: 'Jindal Green Wind 1 Project',
+    category: 'Wind Power Civil Works',
+    date: 'Onboard - Yet to Complete',
+    image: '/images/hero-bg.jpg',
+    client: 'Jindal Green Wind 1 Pvt. Ltd.',
+    location: 'Koppal District, Karnataka',
+    overview:
+      'Civil works for 48 WTG foundations and a Unit Substation for the Jindal Green Wind 1 Pvt. Ltd. project.',
+    scope: [
+      'Civil works for 48 WTG foundations',
+      'Unit Substation civil construction',
+      'Land leveling and subgrade preparation',
+      'Reinforcement and foundation casting',
+    ],
+    highlights: [
+      'Project Owner: Jindal Renewables',
+      'Located in Koppal District, Karnataka',
+      'Active civil works phase',
+      'Adheres to modern wind farm engineering standards',
+    ],
+    status: 'ongoing',
+  },
+  {
+    slug: 'tata-power-sjvn-bop-karur',
+    title: 'SJVN 93.6 MW Wind Project (BOP)',
+    category: 'Balance of Plant - BOP Work',
+    date: 'Onboard - Yet to Complete',
+    image: '/images/project-regen.webp',
+    client: 'Tata Power Renewable Energy Ltd.',
+    location: 'Karur, Tamil Nadu',
+    overview:
+      'BOP works for the 93.6 MW SJVN Wind Power Project in Karur, Tamil Nadu, including land for material movement and related activities, statutory approvals, and security services for WTG locations until commissioning.',
+    scope: [
+      'Balance of Plant (BOP) execution works',
+      'Land procurement and facilitation for material movement',
+      'Statutory and government regulatory approvals',
+      'Security services for all WTG locations until official commissioning',
+    ],
+    highlights: [
+      'Project capacity of 93.6 MW',
+      'Partner: Tata Power Renewable Energy Ltd.',
+      'Location: Karur, Tamil Nadu',
+      'Ensuring continuous site security and logistics facilitation',
+    ],
+    status: 'ongoing',
+  },
+  {
+    slug: 'tata-power-sjvn-wtg-palayam',
+    title: 'SJVN FDRE 264.6 MW Wind Project',
+    category: 'Wind Power Foundations',
+    date: 'Onboard - Yet to Complete',
+    image: '/images/project-gamesa.webp',
+    client: 'Tata Power Renewable Energy Ltd.',
+    location: 'Palayam Site, Tamil Nadu',
+    overview:
+      'Construction of 42 nos. 3.15 MW Suzlon WTG foundations for the SJVN FDRE 264.6 MW project at Palayam site, Tamil Nadu.',
+    scope: [
+      'Construction of 42 nos. 3.15 MW Suzlon WTG foundations',
+      'Excavation, reinforcement steel binding, shuttering and concreting',
+      'Adherence to Suzlon technical and design guidelines',
+      'Site preparation and crane hardstand coordination',
+    ],
+    highlights: [
+      'Total capacity of 264.6 MW',
+      'Utilizes advanced Suzlon 3.15 MW wind turbine generators',
+      'Location: Palayam, Tamil Nadu',
+      'Critical foundation construction phase in progress',
+    ],
+    status: 'ongoing',
+  },
+  {
+    slug: 'sunsure-energy-bijapur',
+    title: 'Sunsure 300 MW Wind Farm',
+    category: 'Wind Power Foundations',
+    date: 'Onboard - Yet to Complete',
+    image: '/images/H2IlCMMmRklSFMpvMe1avxyrc8.webp',
+    client: 'Sunsure Energy Ltd.',
+    location: 'Korwar Village, Bijapur District, Karnataka',
+    overview:
+      'Construction of 80 nos. 3.15 MW Suzlon WTG foundations for the 300 MW project at Korwar village, Devar Hirpargi taluk, Bijapur district, Karnataka.',
+    scope: [
+      'Construction of 80 nos. 3.15 MW Suzlon WTG foundations',
+      'High-volume foundation civil construction and reinforcement',
+      'Subgrade stabilization and structural shuttering',
+      'Logistics management for heavy material movement',
+    ],
+    highlights: [
+      'Total capacity of 300 MW',
+      'Location: Korwar Village, Devar Hirpargi Taluk, Bijapur District, Karnataka',
+      'Features 80 massive Suzlon 3.15 MW WTG installations',
+      'Undergoing active construction and material mobilization',
+    ],
+    status: 'ongoing',
+  },
+  {
+    slug: 'heft-energy-karur',
+    title: 'Heft Energy 148.4 MW Wind Project',
+    category: 'Wind Power Foundations',
+    date: 'Onboard - Yet to Complete',
+    image: '/images/intro-foundations.jpg',
+    client: 'Heft Energy Pvt. Ltd.',
+    location: 'Karur District, Tamil Nadu',
+    overview:
+      'Construction of 28 nos. 5.3 MW Venwind WTG foundations for the 148.4 MW project in Karur district, Tamil Nadu.',
+    scope: [
+      'Construction of 28 nos. 5.3 MW Venwind WTG foundations',
+      'Heavy civil engineering for 5.3 MW high-capacity wind turbines',
+      'Foundation reinforcement steel fabrication and pouring',
+      'Site preparation, soil testing and compaction',
+    ],
+    highlights: [
+      'Total project capacity of 148.4 MW',
+      'High-capacity 5.3 MW Venwind wind turbine platform',
+      'Location: Karur District, Tamil Nadu',
+      'Complex structural design execution in progress',
+    ],
+    status: 'ongoing',
   },
 ];
 

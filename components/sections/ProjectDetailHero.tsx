@@ -23,7 +23,12 @@ export default function ProjectDetailHero({ project }: ProjectDetailHeroProps) {
           <div className="flex flex-col gap-6 desktop:max-w-[55%] tablet:max-w-[70%]">
             {/* Details row: category | date */}
             <ScrollFadeUp>
-              <div className="flex items-center gap-3 font-inter text-text-muted text-[14px]">
+              <div className="flex flex-wrap items-center gap-3 font-inter text-text-muted text-[14px]">
+                {project.status === 'ongoing' && (
+                  <span className="bg-[#606c38] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-inter">
+                    Ongoing
+                  </span>
+                )}
                 <span>{project.category}</span>
                 <span className="opacity-60">|</span>
                 <span className="opacity-80">{project.date}</span>

@@ -65,6 +65,7 @@ export default function ResourcesSection({
                   date={project.date}
                   imageSrc={project.image}
                   imageAlt={`${project.title} project site`}
+                  status={project.status}
                 />
               </HoverImageZoom>
             </ScrollFadeUp>
