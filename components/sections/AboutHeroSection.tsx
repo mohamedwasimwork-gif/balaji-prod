@@ -42,7 +42,7 @@ const MILESTONE_CARDS = [
   },
   {
     id: 'mw-delivered',
-    title: '2060+ MW Commissioned',
+    title: '2450+ MW Commissioned',
     description:
       'Proven track record of high-quality foundations, access pathways, and EPC works for utility-scale projects.',
     icon: <WindmillIcon size={22} />,
@@ -71,7 +71,7 @@ export default function AboutHeroSection() {
         <div className="mx-auto w-full max-w-container px-4 desktop:px-8">
           <div className="grid gap-8 desktop:grid-cols-2 desktop:gap-[63px] desktop:items-end">
             <BlurInWords
-              text="Reliable Renewable Energy EPC Execution Since 2005"
+              text="Renewable Energy EPC Since 2005"
               as="h1"
               className="type-hero text-text"
               stagger={0.05}
