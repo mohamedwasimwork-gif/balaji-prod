@@ -1,12 +1,7 @@
 import Link from 'next/link';
 
-import LinkedInIcon from '@/components/icons/LinkedInIcon';
-import XIcon from '@/components/icons/XIcon';
-import YouTubeIcon from '@/components/icons/YouTubeIcon';
-
 const CONTACT = {
-  email: 'hello@balaji-co.com',
-  phone: '+91 9876543210',
+  email: 'customers@balaji-co.com',
   address: '11/17, East Street, Shree Ranganarayanapuram, Therumanal, Tirunelveli, Tamil Nadu, 627106, India',
 };
 
@@ -16,12 +11,6 @@ const FOOTER_LINKS = [
   { label: 'Solutions', href: '/solutions' },
   { label: 'Contact', href: '/contact' },
   { label: 'Projects', href: '/projects' },
-];
-
-const SOCIALS = [
-  { href: 'https://x.com', label: 'X (formerly Twitter)', Icon: XIcon },
-  { href: 'https://www.linkedin.com', label: 'LinkedIn', Icon: LinkedInIcon },
-  { href: 'https://youtube.com', label: 'YouTube', Icon: YouTubeIcon },
 ];
 
 export default function Footer() {
@@ -62,7 +51,7 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Col 3 — address + email + phone + socials */}
+          {/* Col 3 — address + email */}
           <div className="flex flex-col gap-4">
             <p className="font-inter text-text-muted text-[15px] leading-[1.6em]">
               {CONTACT.address}
@@ -73,28 +62,6 @@ export default function Footer() {
             >
               {CONTACT.email}
             </a>
-            <a
-              href={`tel:${CONTACT.phone.replace(/\s/g, '')}`}
-              className="font-inter text-text text-[15px] underline underline-offset-4 hover:text-text-muted transition-colors duration-150 w-fit"
-            >
-              {CONTACT.phone}
-            </a>
-
-            {/* Social icons — dark rounded squares */}
-            <div className="flex items-center gap-3 pt-2">
-              {SOCIALS.map(({ href, label, Icon }) => (
-                <a
-                  key={href}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-md bg-text text-white hover:opacity-80 transition-opacity duration-150"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
           </div>
         </div>
 

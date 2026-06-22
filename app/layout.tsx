@@ -70,8 +70,7 @@ const jsonLd = {
   logo: 'https://balaji-co.com/images/logo-dark.png',
   description:
     'Balaji & Co delivers reliable wind and solar EPC solutions with strong engineering, quality construction, and proven multi-state project execution across India.',
-  telephone: '+919876543210',
-  email: 'hello@balaji-co.com',
+  email: 'customers@balaji-co.com',
   address: {
     '@type': 'PostalAddress',
     streetAddress: '11/17, East Street, Shree Ranganarayanapuram, Therumanal',
@@ -80,7 +79,6 @@ const jsonLd = {
     postalCode: '627106',
     addressCountry: 'IN',
   },
-  sameAs: ['https://x.com', 'https://www.linkedin.com', 'https://youtube.com'],
 };
 
 export const viewport = {

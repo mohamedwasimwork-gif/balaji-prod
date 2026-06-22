@@ -11,11 +11,6 @@ import SectionWrapper from '@/components/ui/SectionWrapper';
 
 const DIRECTORS = [
   {
-    name: 'Balakrishnan P',
-    role: 'Founder & MD of Balaji Groups',
-    image: '/images/director-balaji.png',
-  },
-  {
     name: 'Victor Jebaponraj',
     role: 'Legal Director of Balaji Wind Energy Pvt Ltd',
     image: '/images/director-victor.png',
@@ -54,7 +49,7 @@ export default function DirectorsSection() {
         </div>
 
         {/* Leadership Grid */}
-        <div className="grid gap-8 mobile:grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4">
+        <div className="grid gap-8 mobile:grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3">
           {DIRECTORS.map((director, i) => (
             <ScrollFadeUp key={director.name} delay={i * 0.1} distance={30}>
               <div className="flex flex-col gap-4 group">
