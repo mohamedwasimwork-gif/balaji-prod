@@ -65,7 +65,7 @@ export default function CertificationsSection() {
           </div>
 
           {/* Cards Grid */}
-          <div className="grid gap-6 sm:grid-cols-1 tablet:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 tablet:grid-cols-3 desktop:grid-cols-3">
             {CERTIFICATIONS.map((cert, i) => {
               const Icon = cert.icon;
               return (
