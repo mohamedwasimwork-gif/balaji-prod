@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 import MobileMenu from '@/components/layout/MobileMenu';
@@ -11,7 +12,11 @@ import { NAV_LINKS } from '@/lib/nav';
 /* Routes where the hero has a DARK background (logo + links start white) */
 const DARK_HERO_ROUTES: string[] = ['/'];
 
-export default function Navigation() {
+interface NavigationProps {
+  showLogo?: boolean;
+}
+
+export default function Navigation({ showLogo = true }: NavigationProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -28,7 +33,6 @@ export default function Navigation() {
   /* Once mobile menu opens, force solid-white nav so the logo stays visible against any backdrop */
   const useLightText = !scrolled && heroIsDark && !menuOpen;
 
-  const logoSrc = useLightText ? '/images/logo-light.png' : '/images/logo-dark.png';
   const linkColor = useLightText
     ? 'text-white hover:text-white/70'
     : 'text-text hover:text-primary';
@@ -53,16 +57,29 @@ export default function Navigation() {
           <Link
             href="/"
             aria-label="Balaji & Co — home"
-            className="flex-shrink-0 -m-2 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
+            className="flex-shrink-0 -m-2 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm min-w-[140px] min-h-[36px] flex items-center"
           >
-            <Image
-              src={logoSrc}
-              alt="Balaji & Co logo"
-              width={140}
-              height={40}
-              className="h-8 w-auto object-contain desktop:h-9"
-              priority
-            />
+            {showLogo && (
+              <motion.div
+                layoutId="main-logo"
+                transition={{
+                  type: 'spring',
+                  stiffness: 100,
+                  damping: 18,
+                }}
+              >
+                <Image
+                  src="/logo.png"
+                  alt="Balaji & Co logo"
+                  width={140}
+                  height={40}
+                  className={`h-8 w-auto object-contain desktop:h-9 transition-all duration-300 ${
+                    useLightText ? 'brightness-0 invert' : ''
+                  }`}
+                  priority
+                />
+              </motion.div>
+            )}
           </Link>
 
           {/* Desktop links */}

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 const CONTACT = {
@@ -27,9 +28,15 @@ export default function Footer() {
           <div className="flex flex-col gap-5">
             <Link
               href="/"
-              className="type-h3 font-medium text-text hover:opacity-80 transition-opacity w-fit"
+              className="hover:opacity-80 transition-opacity w-fit block"
             >
-              Balaji &amp; Co.
+              <Image
+                src="/logo.png"
+                alt="Balaji & Co. logo"
+                width={140}
+                height={40}
+                className="h-8 w-auto object-contain desktop:h-9"
+              />
             </Link>
             <p className="font-inter text-text-muted text-[15px] leading-[1.6em] max-w-sm">
               Balaji &amp; Co delivers reliable wind and solar infrastructure with strong
