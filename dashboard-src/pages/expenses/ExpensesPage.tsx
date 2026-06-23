@@ -5,7 +5,10 @@ import toast from 'react-hot-toast';
 import {
   Search, Plus, Trash2, Maximize2, Minimize2, X, Receipt,
   Building2, Phone, Mail, MapPin, Calendar, TrendingUp, TrendingDown,
+  Download, FileSpreadsheet
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { expensesService, projectsService } from '@dashboard/services';
 import { Expense, Project, ProfitData } from '@dashboard/types';
 import { QUERY_KEYS, PAYMENT_MODES, REF_ID_LABELS } from '@dashboard/constants';
@@ -29,6 +32,7 @@ export function ExpensesPage() {
   const [selected, setSelected] = useState<Expense | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showDownloadReport, setShowDownloadReport] = useState(false);
   const queryClient = useQueryClient();
   const { canDelete, canViewProfit } = usePermissions();
 
@@ -73,8 +77,8 @@ export function ExpensesPage() {
   const total = data?.total ?? 0;
 
   const containerClass = fullscreen
-    ? 'fixed inset-0 z-50 bg-gray-50 overflow-auto p-6'
-    : 'space-y-6';
+     ? 'fixed inset-0 z-50 bg-gray-50 overflow-auto p-6'
+     : 'space-y-6';
 
   return (
     <div className={containerClass}>
@@ -86,6 +90,9 @@ export function ExpensesPage() {
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => setFullscreen(!fullscreen)}>
             {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+          <Button variant="secondary" onClick={() => setShowDownloadReport(true)} className="flex items-center gap-1.5">
+            <Download className="h-4 w-4" /> Download Report
           </Button>
           <Button onClick={() => setShowCreate(true)}>
             <Plus className="h-4 w-4 mr-2" /> New Expense
@@ -317,6 +324,9 @@ export function ExpensesPage() {
       {/* Create Modal */}
       <CreateExpenseModal open={showCreate} onClose={() => setShowCreate(false)} />
 
+      {/* Download Report Modal */}
+      <DownloadExpensesReportModal open={showDownloadReport} onClose={() => setShowDownloadReport(false)} />
+
       {canDelete && (
         <ConfirmDialog
           open={!!deleteTarget}
@@ -368,15 +378,31 @@ function ProfitPanel({ data }: { data: ProfitData }) {
 function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [projectId, setProjectId] = useState('');
-  const [purpose, setPurpose] = useState('');
-  const [amount, setAmount] = useState('');
-  const [amountType, setAmountType] = useState<'credit' | 'debit'>('debit');
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash');
-  const [refId, setRefId] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [vendorName, setVendorName] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
-  const [gstNumber, setGstNumber] = useState('');
+  interface ExpenseItem {
+    purpose: string;
+    amount: string;
+    amountType: 'credit' | 'debit';
+    paymentMode: PaymentMode;
+    refId: string;
+    remarks: string;
+    vendorName: string;
+    invoiceNumber: string;
+    gstNumber: string;
+  }
+
+  const [items, setItems] = useState<ExpenseItem[]>([
+    {
+      purpose: '',
+      amount: '',
+      amountType: 'debit',
+      paymentMode: 'cash',
+      refId: '',
+      remarks: '',
+      vendorName: '',
+      invoiceNumber: '',
+      gstNumber: '',
+    }
+  ]);
 
   const { data: projectsData } = useQuery({
     queryKey: [QUERY_KEYS.ADMIN_PROJECTS],
@@ -385,54 +411,125 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
   });
 
   const createMutation = useMutation({
-    mutationFn: expensesService.createExpense,
+    mutationFn: expensesService.createExpensesBatch,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.EXPENSES] });
       resetForm();
       onClose();
+      toast.success('Expenses created successfully');
     },
+    onError: (error: any) => {
+      const msg = error?.response?.data?.message || 'Failed to create expenses';
+      toast.error(msg);
+    }
   });
 
   const resetForm = () => {
-    setProjectId(''); setPurpose(''); setAmount(''); setAmountType('debit');
-    setPaymentMode('cash'); setRefId(''); setRemarks('');
-    setVendorName(''); setInvoiceNumber(''); setGstNumber('');
+    setProjectId('');
+    setItems([
+      {
+        purpose: '',
+        amount: '',
+        amountType: 'debit',
+        paymentMode: 'cash',
+        refId: '',
+        remarks: '',
+        vendorName: '',
+        invoiceNumber: '',
+        gstNumber: '',
+      }
+    ]);
   };
 
-  const wordCount = purpose.trim().split(/\s+/).filter(Boolean).length;
-  const vendorWordCount = vendorName.trim().split(/\s+/).filter(Boolean).length;
+  const handleAddItem = () => {
+    setItems([
+      ...items,
+      {
+        purpose: '',
+        amount: '',
+        amountType: 'debit',
+        paymentMode: 'cash',
+        refId: '',
+        remarks: '',
+        vendorName: '',
+        invoiceNumber: '',
+        gstNumber: '',
+      }
+    ]);
+  };
+
+  const handleRemoveItem = (idx: number) => {
+    if (items.length <= 1) return;
+    setItems(items.filter((_, i) => i !== idx));
+  };
+
+  const handleUpdateItem = (idx: number, field: keyof ExpenseItem, value: any) => {
+    const updated = [...items];
+    const item = updated[idx];
+    if (item) {
+      updated[idx] = { ...item, [field]: value };
+      if (field === 'paymentMode') {
+        updated[idx].refId = ''; // Reset reference ID when mode changes
+      }
+      setItems(updated);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectId || !purpose || !amount || !refId) return;
-    if (wordCount > 100) { toast.error('Purpose must be max 100 words'); return; }
+    if (!projectId) {
+      toast.error('Please select a project');
+      return;
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item) continue;
+      if (!item.purpose.trim() || !item.amount || !item.refId.trim()) {
+        toast.error(`Please fill all required fields for Expense #${i + 1}`);
+        return;
+      }
+      const wordCount = item.purpose.trim().split(/\s+/).filter(Boolean).length;
+      if (wordCount > 100) {
+        toast.error(`Purpose must be max 100 words for Expense #${i + 1}`);
+        return;
+      }
+      const vendorWordCount = item.vendorName.trim().split(/\s+/).filter(Boolean).length;
+      if (vendorWordCount > 100) {
+        toast.error(`Vendor Name must be max 100 words for Expense #${i + 1}`);
+        return;
+      }
+    }
+
     createMutation.mutate({
       projectId,
-      purpose,
-      amount: parseFloat(amount),
-      amountType,
-      paymentMode,
-      refId,
-      remarks: remarks || undefined,
-      vendorName: vendorName || undefined,
-      invoiceNumber: invoiceNumber || undefined,
-      gstNumber: gstNumber || undefined,
+      expenses: items.map(item => ({
+        purpose: item.purpose.trim(),
+        amount: parseFloat(item.amount),
+        amountType: item.amountType,
+        paymentMode: item.paymentMode,
+        refId: item.refId.trim(),
+        remarks: item.remarks.trim() || undefined,
+        vendorName: item.vendorName.trim() || undefined,
+        invoiceNumber: item.invoiceNumber.trim() || undefined,
+        gstNumber: item.gstNumber.trim() || undefined,
+      }))
     });
   };
 
   const projects: Project[] = projectsData?.projects ?? [];
 
   return (
-    <Modal open={open} onClose={onClose} title="New Expense">
+    <Modal open={open} onClose={onClose} title="New Expense" size="lg">
       <form onSubmit={handleSubmit}>
         <Modal.Body>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Project *</label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
                 required
               >
                 <option value="">Select a project</option>
@@ -441,115 +538,491 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Purpose * <span className="text-gray-400 font-normal">({wordCount}/100 words)</span>
-              </label>
-              <textarea
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                placeholder="Max 100 words"
-                rows={3}
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-                <select
-                  value={amountType}
-                  onChange={(e) => setAmountType(e.target.value as 'credit' | 'debit')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="debit">Debit</option>
-                  <option value="credit">Credit</option>
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Mode *</label>
-                <select
-                  value={paymentMode}
-                  onChange={(e) => { setPaymentMode(e.target.value as PaymentMode); setRefId(''); }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  {PAYMENT_MODES.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{REF_ID_LABELS[paymentMode]} *</label>
-                <input
-                  value={refId}
-                  onChange={(e) => setRefId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Vendor Name <span className="text-gray-400 font-normal">({vendorWordCount}/100 words)</span>
-              </label>
-              <textarea
-                value={vendorName}
-                onChange={(e) => setVendorName(e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                placeholder="Optional"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
-                <input
-                  value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  placeholder="Optional"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">GST Number</label>
-                <input
-                  value={gstNumber}
-                  onChange={(e) => setGstNumber(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  placeholder="Optional"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
-              <textarea
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              />
+
+            <div className="border-t border-gray-100 my-4" />
+
+            <div className="space-y-6 max-h-[55vh] overflow-y-auto pr-2">
+              {items.map((item, idx) => {
+                const wordCount = item.purpose.trim().split(/\s+/).filter(Boolean).length;
+                const vendorWordCount = item.vendorName.trim().split(/\s+/).filter(Boolean).length;
+
+                return (
+                  <div key={idx} className="relative p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-forest-700">Expense #{idx + 1}</span>
+                      {items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(idx)}
+                          className="flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded"
+                        >
+                          <Trash2 className="h-3 w-3" /> Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Purpose * <span className="text-gray-400 font-normal">({wordCount}/100 words)</span>
+                      </label>
+                      <textarea
+                        value={item.purpose}
+                        onChange={(e) => handleUpdateItem(idx, 'purpose', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                        placeholder="Max 100 words"
+                        rows={2}
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Amount *</label>
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={item.amount}
+                          onChange={(e) => handleUpdateItem(idx, 'amount', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Type *</label>
+                        <select
+                          value={item.amountType}
+                          onChange={(e) => handleUpdateItem(idx, 'amountType', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                        >
+                          <option value="debit">Debit</option>
+                          <option value="credit">Credit</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Payment Mode *</label>
+                        <select
+                          value={item.paymentMode}
+                          onChange={(e) => handleUpdateItem(idx, 'paymentMode', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                        >
+                          {PAYMENT_MODES.map((m) => (
+                            <option key={m.value} value={m.value}>{m.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{REF_ID_LABELS[item.paymentMode]} *</label>
+                        <input
+                          value={item.refId}
+                          onChange={(e) => handleUpdateItem(idx, 'refId', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Vendor Name <span className="text-gray-400 font-normal">({vendorWordCount}/100 words)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={item.vendorName}
+                        onChange={(e) => handleUpdateItem(idx, 'vendorName', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                        placeholder="Optional"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Invoice Number</label>
+                        <input
+                          value={item.invoiceNumber}
+                          onChange={(e) => handleUpdateItem(idx, 'invoiceNumber', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                          placeholder="Optional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">GST Number</label>
+                        <input
+                          value={item.gstNumber}
+                          onChange={(e) => handleUpdateItem(idx, 'gstNumber', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                          placeholder="Optional"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Remarks</label>
+                      <textarea
+                        value={item.remarks}
+                        onChange={(e) => handleUpdateItem(idx, 'remarks', e.target.value)}
+                        rows={1}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={handleAddItem}
+                className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 hover:border-forest-500 rounded-xl text-sm font-medium text-gray-600 hover:text-forest-700 transition-colors bg-white hover:bg-forest-50/20"
+              >
+                <Plus className="h-4 w-4" /> Add Another Expense
+              </button>
             </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => { resetForm(); onClose(); }}>Cancel</Button>
-          <Button type="submit" loading={createMutation.isPending}>Create Expense</Button>
+          <Button type="submit" loading={createMutation.isPending}>Create Expenses</Button>
         </Modal.Footer>
       </form>
+    </Modal>
+  );
+}
+
+function DownloadExpensesReportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-01'));
+  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [amountType, setAmountType] = useState<'all' | 'credit' | 'debit'>('all');
+  const [filterProjectId, setFilterProjectId] = useState('all');
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
+
+  const { data: projectsData } = useQuery({
+    queryKey: [QUERY_KEYS.ADMIN_PROJECTS],
+    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
+    enabled: open,
+  });
+
+  const projects: Project[] = projectsData?.projects ?? [];
+
+  const handleDownloadPdf = async () => {
+    if (!startDate || !endDate) {
+      toast.error('Please select both start and end dates');
+      return;
+    }
+    setDownloadingPdf(true);
+    try {
+      const filters: any = {
+        limit: 10000,
+        startDate: startOfDay(new Date(startDate)).toISOString(),
+        endDate: endOfDay(new Date(endDate)).toISOString(),
+      };
+      if (amountType !== 'all') {
+        filters.amountType = amountType;
+      }
+      if (filterProjectId !== 'all') {
+        filters.projectId = filterProjectId;
+      }
+
+      const response = await expensesService.getExpenses(filters);
+      const expenses = response.expenses;
+
+      if (expenses.length === 0) {
+        toast.error('No expenses found for the selected filters');
+        return;
+      }
+
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+      // Header
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('Payment Advice (Expenses) Report', 14, 18);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Date Range: ${format(new Date(startDate), 'dd MMM yyyy')} to ${format(new Date(endDate), 'dd MMM yyyy')}`, 14, 25);
+      doc.text(`Type: ${amountType.toUpperCase()}`, 14, 30);
+
+      const projectLabel = filterProjectId === 'all'
+        ? 'All Projects'
+        : projects.find((p) => p._id === filterProjectId)?.projectTitle || 'Selected Project';
+      doc.text(`Project: ${projectLabel}`, 14, 35);
+
+      // Divider line
+      doc.setDrawColor(200, 200, 200);
+      doc.line(14, 38, 283, 38);
+
+      const pdfAmount = (amount: number) => `Rs. ${amount.toLocaleString('en-IN')}`;
+
+      const entryToRow = (e: any) => [
+        e.expenseId,
+        format(new Date(e.createdAt), 'dd MMM yyyy'),
+        e.projectSnapshot?.projectTitle || '',
+        e.purpose,
+        pdfAmount(e.amount),
+        e.amountType.toUpperCase(),
+        e.paymentMode.toUpperCase(),
+        e.refId,
+        e.vendorName || '-',
+        e.invoiceNumber || '-',
+        e.gstNumber || '-',
+      ];
+
+      const tableHeaders = ['ID', 'Date', 'Project', 'Purpose', 'Amount (Rs.)', 'Type', 'Mode', 'Ref ID', 'Vendor', 'Invoice#', 'GST'];
+
+      const totalCredit = expenses
+        .filter((e: any) => e.amountType === 'credit')
+        .reduce((acc: number, e: any) => acc + e.amount, 0);
+
+      const totalDebit = expenses
+        .filter((e: any) => e.amountType === 'debit')
+        .reduce((acc: number, e: any) => acc + e.amount, 0);
+
+      const netBalance = totalCredit - totalDebit;
+
+      // Col styles
+      const txColStyles = {
+        0: { cellWidth: 18 }, // ID
+        1: { cellWidth: 20 }, // Date
+        2: { cellWidth: 32 }, // Project
+        3: { cellWidth: 44 }, // Purpose
+        4: { cellWidth: 26, halign: 'right' as const }, // Amount
+        5: { cellWidth: 14 }, // Type
+        6: { cellWidth: 16 }, // Mode
+        7: { cellWidth: 24 }, // Ref ID
+        8: { cellWidth: 22 }, // Vendor
+        9: { cellWidth: 21 }, // Invoice#
+        10: { cellWidth: 32 }, // GST
+      };
+
+      autoTable(doc, {
+        startY: 42,
+        head: [tableHeaders],
+        body: expenses.map(entryToRow),
+        theme: 'grid',
+        styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [20, 83, 45], textColor: [255, 255, 255], fontStyle: 'bold' },
+        columnStyles: txColStyles,
+        margin: { left: 14, right: 14 },
+      });
+
+      let y = (doc as any).lastAutoTable.finalY + 8;
+
+      if (y > 175) {
+        doc.addPage();
+        y = 18;
+      }
+
+      // Summary Table
+      autoTable(doc, {
+        startY: y,
+        head: [['Report Summary', '', '']],
+        body: [
+          ['Total Credits (Receipts)', pdfAmount(totalCredit), 'Total Debits (Payments)', pdfAmount(totalDebit)],
+          ['Net Profit / Balance', `${netBalance >= 0 ? '+' : ''}${pdfAmount(netBalance)}`, '', ''],
+        ],
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 3, fontStyle: 'bold' },
+        headStyles: { fillColor: [240, 240, 240], textColor: [30, 30, 30], fontStyle: 'bold', halign: 'center' },
+        columnStyles: {
+          0: { cellWidth: 60 },
+          1: { cellWidth: 74.5, halign: 'right' },
+          2: { cellWidth: 60 },
+          3: { cellWidth: 74.5, halign: 'right' },
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(160, 160, 160);
+        doc.text(`Balaji & Co - Payment Advice Report | Page ${i} of ${pageCount}`, 148, 200, { align: 'center' });
+      }
+
+      doc.save(`expenses-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast.success('PDF report downloaded successfully');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate PDF report');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    if (!startDate || !endDate) {
+      toast.error('Please select both start and end dates');
+      return;
+    }
+    setDownloadingExcel(true);
+    try {
+      const filters: any = {
+        limit: 10000,
+        startDate: startOfDay(new Date(startDate)).toISOString(),
+        endDate: endOfDay(new Date(endDate)).toISOString(),
+      };
+      if (amountType !== 'all') {
+        filters.amountType = amountType;
+      }
+      if (filterProjectId !== 'all') {
+        filters.projectId = filterProjectId;
+      }
+
+      const response = await expensesService.getExpenses(filters);
+      const expenses = response.expenses;
+
+      if (expenses.length === 0) {
+        toast.error('No expenses found for the selected filters');
+        return;
+      }
+
+      // Generate CSV
+      const csvHeaders = [
+        'Expense ID',
+        'Date',
+        'Project Title',
+        'Company Name',
+        'Purpose',
+        'Amount',
+        'Amount Type',
+        'Payment Mode',
+        'Ref ID',
+        'Vendor Name',
+        'Invoice Number',
+        'GST Number',
+        'Remarks'
+      ];
+
+      const csvRows = expenses.map((e: any) => [
+        e.expenseId,
+        format(new Date(e.createdAt), 'yyyy-MM-dd HH:mm'),
+        `"${(e.projectSnapshot?.projectTitle || '').replace(/"/g, '""')}"`,
+        `"${(e.projectSnapshot?.companyName || '').replace(/"/g, '""')}"`,
+        `"${(e.purpose || '').replace(/"/g, '""')}"`,
+        e.amount,
+        e.amountType,
+        e.paymentMode,
+        `"${(e.refId || '').replace(/"/g, '""')}"`,
+        `"${(e.vendorName || '').replace(/"/g, '""')}"`,
+        `"${(e.invoiceNumber || '').replace(/"/g, '""')}"`,
+        `"${(e.gstNumber || '').replace(/"/g, '""')}"`,
+        `"${(e.remarks || '').replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = [
+        csvHeaders.join(','),
+        ...csvRows.map((row: any) => row.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `expenses-report-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('Excel (CSV) report downloaded successfully');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate Excel report');
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Download Expenses Report">
+      <div className="space-y-4">
+        <Modal.Body>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
+              <select
+                value={amountType}
+                onChange={(e) => setAmountType(e.target.value as 'all' | 'credit' | 'debit')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
+              >
+                <option value="all">All (Credits & Debits)</option>
+                <option value="debit">Debits Only</option>
+                <option value="credit">Credits Only</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Project Selection</label>
+              <select
+                value={filterProjectId}
+                onChange={(e) => setFilterProjectId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
+              >
+                <option value="all">All Projects</option>
+                {projects.map((p) => (
+                  <option key={p._id} value={p._id}>{p.projectTitle} — {p.companyName}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleDownloadExcel}
+              loading={downloadingExcel}
+              disabled={downloadingPdf}
+              variant="secondary"
+              className="flex items-center gap-1.5"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-green-700" /> Export Excel
+            </Button>
+            <Button
+              onClick={handleDownloadPdf}
+              loading={downloadingPdf}
+              disabled={downloadingExcel}
+              className="flex items-center gap-1.5"
+            >
+              <Download className="h-4 w-4" /> Export PDF
+            </Button>
+          </div>
+        </Modal.Footer>
+      </div>
     </Modal>
   );
 }

@@ -48,6 +48,11 @@ export const expensesService = {
     return response.data;
   },
 
+  createExpensesBatch: async (data: { projectId: string; expenses: Omit<CreateExpensePayload, 'projectId'>[] }): Promise<Expense[]> => {
+    const response = await apiClient.post('/admin/expenses/batch', data);
+    return response.data;
+  },
+
   updateExpense: async (id: string, data: Partial<CreateExpensePayload>): Promise<Expense> => {
     const response = await apiClient.put(`/admin/expenses/${id}`, data);
     return response.data;
