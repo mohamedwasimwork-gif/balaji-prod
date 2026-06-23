@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 import { Search, Download, FileSpreadsheet } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -219,6 +220,86 @@ export function DownloadPage() {
     doc.save(`report-${data.companyName.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
 
+  const handleDownloadExcel = () => {
+    if (!data) return;
+
+    const csvRows: string[] = [];
+
+    // Header Metadata
+    csvRows.push(`"Payment Advice & Billing Report"`);
+    csvRows.push(`"Company:","${data.companyName.replace(/"/g, '""')}"`);
+    csvRows.push(`"Generated:","${format(new Date(data.generatedAt), 'dd MMM yyyy, hh:mm a')}"`);
+    csvRows.push(`"Projects:","${data.projects.map((p) => p.projectTitle).join(', ').replace(/"/g, '""')}"`);
+    csvRows.push(''); // Empty line
+
+    const headers = ['ID', 'Date', 'Project', 'Purpose', 'Amount', 'Type', 'Mode', 'Ref ID', 'Vendor', 'Invoice#', 'GST', 'Remarks'];
+
+    const formatEntry = (e: DownloadReportEntry, type: string) => [
+      e.id,
+      format(new Date(e.date), 'yyyy-MM-dd'),
+      `"${(e.projectTitle || '').replace(/"/g, '""')}"`,
+      `"${(e.purpose || '').replace(/"/g, '""')}"`,
+      e.amount,
+      type,
+      e.paymentMode,
+      `"${(e.refId || '').replace(/"/g, '""')}"`,
+      `"${(e.vendorName || '').replace(/"/g, '""')}"`,
+      `"${(e.invoiceNumber || '').replace(/"/g, '""')}"`,
+      `"${(e.gstNumber || '').replace(/"/g, '""')}"`,
+      `"${(e.remarks || '').replace(/"/g, '""')}"`
+    ].join(',');
+
+    // Section 1: Payment Advice
+    csvRows.push(`"1. PAYMENT ADVICE (EXPENSES)"`);
+    csvRows.push(headers.join(','));
+    
+    // Payment Advice Credits
+    data.paymentAdvice.credits.forEach(e => {
+      csvRows.push(formatEntry(e, 'CREDIT'));
+    });
+    // Payment Advice Debits
+    data.paymentAdvice.debits.forEach(e => {
+      csvRows.push(formatEntry(e, 'DEBIT'));
+    });
+    
+    // Totals for Payment Advice
+    csvRows.push(`,,,,,"Total Credits:",${data.paymentAdvice.creditTotal}`);
+    csvRows.push(`,,,,,"Total Debits:",${data.paymentAdvice.debitTotal}`);
+    csvRows.push(`,,,,,"Net Balance:",${data.paymentAdvice.creditTotal - data.paymentAdvice.debitTotal}`);
+    csvRows.push(''); // Empty line
+    csvRows.push(''); // Empty line
+
+    // Section 2: Billing
+    csvRows.push(`"2. BILLING (INVOICES)"`);
+    csvRows.push(headers.join(','));
+    
+    // Billing Credits
+    data.billing.credits.forEach(e => {
+      csvRows.push(formatEntry(e, 'CREDIT'));
+    });
+    // Billing Debits
+    data.billing.debits.forEach(e => {
+      csvRows.push(formatEntry(e, 'DEBIT'));
+    });
+    
+    // Totals for Billing
+    csvRows.push(`,,,,,"Total Credits:",${data.billing.creditTotal}`);
+    csvRows.push(`,,,,,"Total Debits:",${data.billing.debitTotal}`);
+    csvRows.push(`,,,,,"Net Balance:",${data.billing.creditTotal - data.billing.debitTotal}`);
+
+    // Create Blob and trigger download
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `report-${data.companyName.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Excel (CSV) report downloaded successfully');
+  };
+
   const renderSection = (title: string, section: DownloadReportData['paymentAdvice']) => {
     const hasData = section.credits.length > 0 || section.debits.length > 0;
     const netProfit = section.creditTotal - section.debitTotal;
@@ -332,9 +413,14 @@ export function DownloadPage() {
                 <p className="text-sm text-gray-500">
                   Found {data.projects.length} project{data.projects.length !== 1 ? 's' : ''} for <strong>{data.companyName}</strong>
                 </p>
-                <Button onClick={handleDownload}>
-                  <Download className="h-4 w-4 mr-2" /> Download PDF
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={handleDownloadExcel} variant="secondary" className="flex items-center gap-1.5">
+                    <FileSpreadsheet className="h-4 w-4 text-green-700" /> Download Excel
+                  </Button>
+                  <Button onClick={handleDownload}>
+                    <Download className="h-4 w-4 mr-2" /> Download PDF
+                  </Button>
+                </div>
               </div>
 
               {renderSection('Payment Advice', data.paymentAdvice)}
