@@ -31,11 +31,10 @@ export default function PublicShell({ children }: { children: React.ReactNode })
   }, [isLoading]);
 
   // If the path starts with /admin-login, it's the dashboard SPA.
-  // Also skip Navigation and Footer if we are on the root / and want full-screen maintenance mode.
+  // We want to skip the marketing Navigation and Footer entirely.
   const isDashboard = pathname?.startsWith('/admin-login');
-  const isRoot = pathname === '/';
 
-  if (isDashboard || isRoot) {
+  if (isDashboard) {
     return <>{children}</>;
   }
 
