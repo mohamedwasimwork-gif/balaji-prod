@@ -86,6 +86,7 @@ export interface Expense {
   expenseId: string;
   projectId: string;
   projectSnapshot: ProjectSnapshot;
+  expenseDate: string;
   purpose: string;
   amount: number;
   amountType: AmountType;

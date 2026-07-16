@@ -206,7 +206,7 @@ export function ExpensesPage() {
                         </Badge>
                       </td>
                       <td className="px-4 py-3 capitalize">{exp.paymentMode}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{format(new Date(exp.createdAt), 'dd MMM yyyy')}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{format(new Date(exp.expenseDate ?? exp.createdAt), 'dd MMM yyyy')}</td>
                       {canDelete && (
                         <td className="px-4 py-3 text-right">
                           <button
@@ -292,7 +292,7 @@ export function ExpensesPage() {
               )}
               <div>
                 <p className="text-gray-500 text-xs mb-1">Date</p>
-                <p>{format(new Date(selected.createdAt), 'dd MMM yyyy, hh:mm a')}</p>
+                <p>{format(new Date(selected.expenseDate ?? selected.createdAt), 'dd MMM yyyy')}</p>
               </div>
             </div>
 
@@ -379,6 +379,7 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
   const queryClient = useQueryClient();
   const [projectId, setProjectId] = useState('');
   interface ExpenseItem {
+    expenseDate: string;
     purpose: string;
     amount: string;
     amountType: 'credit' | 'debit';
@@ -392,6 +393,7 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
 
   const [items, setItems] = useState<ExpenseItem[]>([
     {
+      expenseDate: format(new Date(), 'yyyy-MM-dd'),
       purpose: '',
       amount: '',
       amountType: 'debit',
@@ -428,6 +430,7 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
     setProjectId('');
     setItems([
       {
+        expenseDate: format(new Date(), 'yyyy-MM-dd'),
         purpose: '',
         amount: '',
         amountType: 'debit',
@@ -445,6 +448,7 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
     setItems([
       ...items,
       {
+        expenseDate: format(new Date(), 'yyyy-MM-dd'),
         purpose: '',
         amount: '',
         amountType: 'debit',
@@ -485,7 +489,7 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (!item) continue;
-      if (!item.purpose.trim() || !item.amount || !item.refId.trim()) {
+      if (!item.expenseDate || !item.purpose.trim() || !item.amount || !item.refId.trim()) {
         toast.error(`Please fill all required fields for Expense #${i + 1}`);
         return;
       }
@@ -504,6 +508,7 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
     createMutation.mutate({
       projectId,
       expenses: items.map(item => ({
+        expenseDate: item.expenseDate,
         purpose: item.purpose.trim(),
         amount: parseFloat(item.amount),
         amountType: item.amountType,
@@ -575,7 +580,17 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Date *</label>
+                        <input
+                          type="date"
+                          value={item.expenseDate}
+                          onChange={(e) => handleUpdateItem(idx, 'expenseDate', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500 bg-white"
+                          required
+                        />
+                      </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">Amount *</label>
                         <input
@@ -762,7 +777,7 @@ function DownloadExpensesReportModal({ open, onClose }: { open: boolean; onClose
 
       const entryToRow = (e: any) => [
         e.expenseId,
-        format(new Date(e.createdAt), 'dd MMM yyyy'),
+        format(new Date(e.expenseDate ?? e.createdAt), 'dd MMM yyyy'),
         e.projectSnapshot?.projectTitle || '',
         e.purpose,
         pdfAmount(e.amount),
@@ -906,7 +921,7 @@ function DownloadExpensesReportModal({ open, onClose }: { open: boolean; onClose
 
       const csvRows = expenses.map((e: any) => [
         e.expenseId,
-        format(new Date(e.createdAt), 'yyyy-MM-dd HH:mm'),
+        format(new Date(e.expenseDate ?? e.createdAt), 'yyyy-MM-dd'),
         `"${(e.projectSnapshot?.projectTitle || '').replace(/"/g, '""')}"`,
         `"${(e.projectSnapshot?.companyName || '').replace(/"/g, '""')}"`,
         `"${(e.purpose || '').replace(/"/g, '""')}"`,

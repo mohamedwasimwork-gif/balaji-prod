@@ -2,6 +2,7 @@ import { body } from 'express-validator';
 
 export const createExpenseValidation = [
   body('projectId').isMongoId().withMessage('Valid project ID is required'),
+  body('expenseDate').optional().isISO8601().withMessage('Expense date must be a valid date'),
   body('purpose').isString().trim().isLength({ min: 1, max: 5000 }).withMessage('Purpose is required'),
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
   body('amountType').isIn(['credit', 'debit']).withMessage('Amount type must be credit or debit'),
@@ -14,6 +15,7 @@ export const createExpenseValidation = [
 ];
 
 export const updateExpenseValidation = [
+  body('expenseDate').optional().isISO8601().withMessage('Expense date must be a valid date'),
   body('purpose').optional().isString().trim().isLength({ min: 1, max: 5000 }),
   body('amount').optional().isFloat({ min: 0.01 }),
   body('amountType').optional().isIn(['credit', 'debit']),

@@ -29,13 +29,13 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       ];
     }
     if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) filter.createdAt.$gte = new Date(startDate as string);
-      if (endDate) filter.createdAt.$lte = new Date(endDate as string);
+      filter.expenseDate = {};
+      if (startDate) filter.expenseDate.$gte = new Date(startDate as string);
+      if (endDate) filter.expenseDate.$lte = new Date(endDate as string);
     }
     const skip = (Math.max(Number(page), 1) - 1) * limit;
     const [expenses, total] = await Promise.all([
-      Expense.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Expense.find(filter).sort({ expenseDate: -1, createdAt: -1 }).skip(skip).limit(limit),
       Expense.countDocuments(filter),
     ]);
     res.json({ expenses, total, page: Math.max(Number(page), 1), limit });
@@ -109,7 +109,10 @@ router.post('/batch', async (req: AuthRequest, res: Response) => {
     // Validate all expenses
     for (let i = 0; i < expenses.length; i++) {
       const exp = expenses[i];
-      const { purpose, amount, amountType, paymentMode, refId, vendorName } = exp;
+      const { purpose, amount, amountType, paymentMode, refId, vendorName, expenseDate } = exp;
+      if (expenseDate !== undefined && isNaN(new Date(expenseDate).getTime())) {
+        return res.status(400).json({ message: `Valid date is required for expense item at index ${i + 1}` });
+      }
       if (!purpose || typeof purpose !== 'string' || purpose.trim().length === 0) {
         return res.status(400).json({ message: `Purpose is required for expense item at index ${i + 1}` });
       }
@@ -135,11 +138,12 @@ router.post('/batch', async (req: AuthRequest, res: Response) => {
 
     const createdExpenses = [];
     for (const exp of expenses) {
-      const { purpose, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber } = exp;
+      const { purpose, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber, expenseDate } = exp;
       const expenseId = await getNextSequence('expense');
       const newExp = await Expense.create({
         expenseId,
         projectId,
+        expenseDate: expenseDate ? new Date(expenseDate) : new Date(),
         projectSnapshot: {
           projectTitle: project.projectTitle,
           companyName: project.companyName,
@@ -173,7 +177,7 @@ router.post('/batch', async (req: AuthRequest, res: Response) => {
 // POST /admin/expenses
 router.post('/', createExpenseValidation, handleValidation, async (req: AuthRequest, res: Response) => {
   try {
-    const { projectId, purpose, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber } = req.body;
+    const { projectId, purpose, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber, expenseDate } = req.body;
     if (purpose.trim().split(/\s+/).length > 100) {
       return res.status(400).json({ message: 'Purpose must be max 100 words' });
     }
@@ -185,6 +189,7 @@ router.post('/', createExpenseValidation, handleValidation, async (req: AuthRequ
     const expense = await Expense.create({
       expenseId,
       projectId,
+      expenseDate: expenseDate ? new Date(expenseDate) : new Date(),
       projectSnapshot: {
         projectTitle: project.projectTitle,
         companyName: project.companyName,
@@ -218,8 +223,9 @@ router.put('/:id', requireRole('admin'), updateExpenseValidation, handleValidati
     if (purpose && purpose.trim().split(/\s+/).length > 100) {
       return res.status(400).json({ message: 'Purpose must be max 100 words' });
     }
-    const { purpose: p, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber } = req.body;
+    const { purpose: p, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber, expenseDate } = req.body;
     const update: Record<string, unknown> = { updatedBy: req.user!.id };
+    if (expenseDate !== undefined) update.expenseDate = new Date(expenseDate);
     if (p !== undefined) update.purpose = p;
     if (amount !== undefined) update.amount = amount;
     if (amountType !== undefined) update.amountType = amountType;

@@ -14,6 +14,7 @@ export interface IExpense extends Document {
   expenseId: string;
   projectId: Types.ObjectId;
   projectSnapshot: IProjectSnapshot;
+  expenseDate: Date;
   purpose: string;
   amount: number;
   amountType: 'credit' | 'debit';
@@ -53,6 +54,7 @@ const expenseSchema = new Schema<IExpense>(
     expenseId: { type: String, required: true, unique: true },
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
     projectSnapshot: { type: projectSnapshotSchema, required: true },
+    expenseDate: { type: Date, required: true, default: Date.now },
     purpose: { type: String, required: true, maxlength: 5000 },
     amount: { type: Number, required: true, min: 0 },
     amountType: { type: String, enum: ['credit', 'debit'], required: true },
@@ -70,5 +72,6 @@ const expenseSchema = new Schema<IExpense>(
 
 expenseSchema.index({ projectId: 1 });
 expenseSchema.index({ createdAt: -1 });
+expenseSchema.index({ expenseDate: -1 });
 
 export const Expense = mongoose.model<IExpense>('Expense', expenseSchema);

@@ -21,6 +21,7 @@ export interface ExpensesResponse {
 
 export interface CreateExpensePayload {
   projectId: string;
+  expenseDate?: string;
   purpose: string;
   amount: number;
   amountType: 'credit' | 'debit';
