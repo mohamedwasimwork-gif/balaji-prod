@@ -9,7 +9,7 @@ import { QUERY_KEYS, REFETCH_INTERVALS } from '@dashboard/constants';
 import { Badge, Button, Modal, ModalBody, ModalFooter, ConfirmDialog, EmptyState } from '@dashboard/components/ui';
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
-import { Pagination } from '@dashboard/components/ui/Pagination';
+import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
 
 type StatusFilter = 'all' | 'new' | 'contacted' | 'closed';
@@ -31,6 +31,7 @@ export function LeadsPage() {
   const debouncedSearch = useDebounce(search, 300);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [notesModal, setNotesModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -39,13 +40,13 @@ export function LeadsPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: [QUERY_KEYS.LEADS, debouncedSearch, statusFilter, page],
+    queryKey: [QUERY_KEYS.LEADS, debouncedSearch, statusFilter, page, limit],
     queryFn: () =>
       leadsService.getLeads({
         search: debouncedSearch || undefined,
         status: statusFilter === 'all' ? undefined : statusFilter,
         page,
-        limit: 20,
+        limit,
       }),
     refetchInterval: REFETCH_INTERVALS.LEADS,
   });
@@ -193,7 +194,18 @@ export function LeadsPage() {
             </table>
           </div>
         )}
-        {data && <Pagination page={page} total={data.total} limit={20} onPageChange={setPage} />}
+        {data && (
+          <Pagination
+            page={page}
+            total={data.total}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={(next) => {
+              setLimit(next);
+              setPage(1);
+            }}
+          />
+        )}
       </div>
 
       {/* Notes / Status Modal */}

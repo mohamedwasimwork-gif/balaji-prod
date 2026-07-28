@@ -16,7 +16,7 @@ import { QUERY_KEYS, PAYMENT_MODES, REF_ID_LABELS } from '@dashboard/constants';
 import { Badge, Button, ConfirmDialog, EmptyState, Modal } from '@dashboard/components/ui';
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
-import { Pagination } from '@dashboard/components/ui/Pagination';
+import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
 import { usePermissions } from '@dashboard/hooks/usePermissions';
 
@@ -41,9 +41,11 @@ export function ExpensesPage() {
   const debouncedSearch = useDebounce(search, 300);
   const [modeFilter, setModeFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [fromDate, setFromDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [toDate, setToDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [fullscreen, setFullscreen] = useState(false);
   const [selected, setSelected] = useState<Expense | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
@@ -68,18 +70,26 @@ export function ExpensesPage() {
   };
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: [QUERY_KEYS.EXPENSES, debouncedSearch, modeFilter, typeFilter, fromDate, toDate, page],
+    queryKey: [QUERY_KEYS.EXPENSES, debouncedSearch, modeFilter, typeFilter, projectFilter, fromDate, toDate, page, limit],
     enabled: !invalidRange,
     queryFn: () =>
       expensesService.getExpenses({
         search: debouncedSearch || undefined,
         paymentMode: modeFilter === 'all' ? undefined : (modeFilter as PaymentMode),
         amountType: typeFilter === 'all' ? undefined : (typeFilter as 'credit' | 'debit'),
+        projectId: projectFilter === 'all' ? undefined : projectFilter,
         page,
-        limit: 20,
+        limit,
         ...dateFilters,
       }),
   });
+
+  // Drives the project filter dropdown; the list is small enough to fetch in one page.
+  const { data: filterProjectsData } = useQuery({
+    queryKey: [QUERY_KEYS.ADMIN_PROJECTS, 'filter'],
+    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
+  });
+  const filterProjects: Project[] = filterProjectsData?.projects ?? [];
 
   const { data: profitData } = useQuery({
     queryKey: [QUERY_KEYS.EXPENSE_PROFIT, selected?.projectId],
@@ -155,6 +165,16 @@ export function ExpensesPage() {
             <option value="all">All Types</option>
             <option value="credit">Credit</option>
             <option value="debit">Debit</option>
+          </select>
+          <select
+            value={projectFilter}
+            onChange={(e) => { setProjectFilter(e.target.value); setPage(1); }}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm max-w-[220px]"
+          >
+            <option value="all">All Projects</option>
+            {filterProjects.map((p) => (
+              <option key={p._id} value={p._id}>{p.projectTitle} — {p.companyName}</option>
+            ))}
           </select>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 mt-3 sm:items-center">
@@ -289,7 +309,18 @@ export function ExpensesPage() {
               </table>
             </div>
           )}
-          {data && <Pagination page={page} total={data.total} limit={20} onPageChange={setPage} />}
+          {data && (
+            <Pagination
+              page={page}
+              total={data.total}
+              limit={limit}
+              onPageChange={setPage}
+              onLimitChange={(next) => {
+                setLimit(next);
+                setPage(1);
+              }}
+            />
+          )}
         </div>
 
         {/* Right Detail Panel */}

@@ -9,7 +9,8 @@
     "build": "tsc",
     "seed": "tsx src/scripts/seed.ts",
     "migrate:superadmin": "tsx src/scripts/migrate-superadmin-to-admin.ts",
-    "migrate:expense-date": "tsx src/scripts/migrate-expense-date.ts"
+    "migrate:expense-date": "tsx src/scripts/migrate-expense-date.ts",
+    "migrate:invoice-date": "tsx src/scripts/migrate-invoice-date.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

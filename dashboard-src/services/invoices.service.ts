@@ -21,6 +21,7 @@ export interface InvoicesResponse {
 
 export interface CreateInvoicePayload {
   projectId: string;
+  invoiceDate?: string;
   purpose: string;
   amount: number;
   amountType: 'credit' | 'debit';
@@ -50,6 +51,11 @@ export const invoicesService = {
 
   createInvoice: async (data: CreateInvoicePayload): Promise<Invoice> => {
     const response = await apiClient.post('/admin/invoices', data);
+    return response.data;
+  },
+
+  createInvoicesBatch: async (data: { projectId: string; invoices: Omit<CreateInvoicePayload, 'projectId'>[] }): Promise<Invoice[]> => {
+    const response = await apiClient.post('/admin/invoices/batch', data);
     return response.data;
   },
 

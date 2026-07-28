@@ -35,7 +35,7 @@ router.get('/report', async (req: AuthRequest, res: Response) => {
     // Fetch all expenses and invoices for matching projects
     const [expenses, invoices] = await Promise.all([
       Expense.find({ projectId: { $in: projectIds } }).sort({ expenseDate: 1, createdAt: 1 }),
-      Invoice.find({ projectId: { $in: projectIds } }).sort({ createdAt: 1 }),
+      Invoice.find({ projectId: { $in: projectIds } }).sort({ invoiceDate: 1, createdAt: 1 }),
     ]);
 
     // Separate expenses into credits and debits
@@ -48,7 +48,7 @@ router.get('/report', async (req: AuthRequest, res: Response) => {
 
     const mapEntry = (entry: any) => ({
       id: entry.expenseId || entry.invoiceId,
-      date: entry.expenseDate ?? entry.createdAt,
+      date: entry.expenseDate ?? entry.invoiceDate ?? entry.createdAt,
       projectTitle: entry.projectSnapshot?.projectTitle || '',
       purpose: entry.purpose,
       amount: entry.amount,
