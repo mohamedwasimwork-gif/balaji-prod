@@ -4,7 +4,7 @@ import { format, startOfDay, endOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
   Search, Plus, Trash2, Pencil, Maximize2, Minimize2, X, FileText,
-  Building2, Phone, Mail, MapPin, TrendingUp, TrendingDown, Calendar,
+  Building2, Phone, Mail, MapPin, TrendingUp, TrendingDown, Calendar, Download,
 } from 'lucide-react';
 import { invoicesService } from '@dashboard/services';
 import type { CreateInvoicePayload } from '@dashboard/services/invoices.service';
@@ -14,6 +14,7 @@ import { Badge, Button, ConfirmDialog, EmptyState, Modal } from '@dashboard/comp
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
+import { DownloadLedgerReportModal } from '@dashboard/components/reports/DownloadLedgerReportModal';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
 import { usePermissions } from '@dashboard/hooks/usePermissions';
 import { useProjectOptions } from '@dashboard/hooks/useProjectOptions';
@@ -48,6 +49,7 @@ export function InvoicesPage() {
   const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
   const [editTarget, setEditTarget] = useState<Invoice | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showDownloadReport, setShowDownloadReport] = useState(false);
   const queryClient = useQueryClient();
   const { canDelete, canEdit, canViewProfit } = usePermissions();
 
@@ -116,6 +118,9 @@ export function InvoicesPage() {
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => setFullscreen(!fullscreen)}>
             {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+          <Button variant="secondary" onClick={() => setShowDownloadReport(true)} className="flex items-center gap-1.5">
+            <Download className="h-4 w-4" /> Download Report
           </Button>
           <Button onClick={() => setShowCreate(true)}>
             <Plus className="h-4 w-4 mr-2" /> New Invoice
@@ -412,6 +417,9 @@ export function InvoicesPage() {
 
       {/* Create Modal */}
       <CreateInvoiceModal open={showCreate} onClose={() => setShowCreate(false)} />
+
+      {/* Download Report Modal */}
+      <DownloadLedgerReportModal kind="invoices" open={showDownloadReport} onClose={() => setShowDownloadReport(false)} />
 
       {/* Edit Modal */}
       {canEdit && (
