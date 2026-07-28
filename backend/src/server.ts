@@ -19,6 +19,13 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
+// Render (and any other managed host) puts a proxy in front of the app, so
+// without this every request carries the proxy's address and the rate limiter
+// buckets the entire internet — including the platform's own health check —
+// into a single quota. "1" means trust exactly one hop; `true` would let a
+// client forge X-Forwarded-For and evade the limiter entirely.
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
