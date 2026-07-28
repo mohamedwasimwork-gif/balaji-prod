@@ -107,6 +107,7 @@ export interface Invoice {
   invoiceId: string;
   projectId: string;
   projectSnapshot: ProjectSnapshot;
+  invoiceDate: string;
   purpose: string;
   amount: number;
   amountType: AmountType;

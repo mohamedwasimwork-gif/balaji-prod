@@ -9,7 +9,7 @@ import { QUERY_KEYS, ROUTES } from '@dashboard/constants';
 import { Badge, Button, ConfirmDialog, EmptyState } from '@dashboard/components/ui';
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
-import { Pagination } from '@dashboard/components/ui/Pagination';
+import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
 import { usePermissions } from '@dashboard/hooks/usePermissions';
 
@@ -24,19 +24,20 @@ export function ProjectsListPage() {
   const debouncedSearch = useDebounce(search, 300);
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'inactive'>('all');
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { canEdit, canDelete } = usePermissions();
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS, debouncedSearch, statusFilter, page],
+    queryKey: [QUERY_KEYS.ADMIN_PROJECTS, debouncedSearch, statusFilter, page, limit],
     queryFn: () =>
       projectsService.getAdminProjects({
         search: debouncedSearch || undefined,
         status: statusFilter === 'all' ? undefined : statusFilter,
         page,
-        limit: 20,
+        limit,
       }),
   });
 
@@ -158,7 +159,18 @@ export function ProjectsListPage() {
         </div>
       )}
 
-      {data && <Pagination page={page} total={data.total} limit={20} onPageChange={setPage} />}
+      {data && (
+        <Pagination
+          page={page}
+          total={data.total}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={(next) => {
+            setLimit(next);
+            setPage(1);
+          }}
+        />
+      )}
 
       {canDelete && (
         <ConfirmDialog

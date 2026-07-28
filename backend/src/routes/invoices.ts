@@ -29,13 +29,13 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       ];
     }
     if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) filter.createdAt.$gte = new Date(startDate as string);
-      if (endDate) filter.createdAt.$lte = new Date(endDate as string);
+      filter.invoiceDate = {};
+      if (startDate) filter.invoiceDate.$gte = new Date(startDate as string);
+      if (endDate) filter.invoiceDate.$lte = new Date(endDate as string);
     }
     const skip = (Math.max(Number(page), 1) - 1) * limit;
     const [invoices, total] = await Promise.all([
-      Invoice.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Invoice.find(filter).sort({ invoiceDate: -1, createdAt: -1 }).skip(skip).limit(limit),
       Invoice.countDocuments(filter),
     ]);
     res.json({ invoices, total, page: Math.max(Number(page), 1), limit });
@@ -134,10 +134,91 @@ router.get('/:id/profit', requireRole('admin'), async (req: AuthRequest, res: Re
   }
 });
 
+// POST /admin/invoices/batch — create several invoices for one project in a single call
+router.post('/batch', async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId, invoices } = req.body;
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+      return res.status(400).json({ message: 'Valid Project ID is required' });
+    }
+    if (!Array.isArray(invoices) || invoices.length === 0) {
+      return res.status(400).json({ message: 'Invoices array is required and must not be empty' });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    for (let i = 0; i < invoices.length; i++) {
+      const inv = invoices[i];
+      const { purpose, amount, amountType, paymentMode, refId, vendorName, invoiceDate } = inv;
+      if (invoiceDate !== undefined && isNaN(new Date(invoiceDate).getTime())) {
+        return res.status(400).json({ message: `Valid date is required for invoice item at index ${i + 1}` });
+      }
+      if (!purpose || typeof purpose !== 'string' || purpose.trim().length === 0) {
+        return res.status(400).json({ message: `Purpose is required for invoice item at index ${i + 1}` });
+      }
+      if (purpose.trim().split(/\s+/).length > 100) {
+        return res.status(400).json({ message: `Purpose must be max 100 words for invoice item at index ${i + 1}` });
+      }
+      if (typeof amount !== 'number' || amount <= 0) {
+        return res.status(400).json({ message: `Amount must be a positive number greater than 0 for invoice item at index ${i + 1}` });
+      }
+      if (!['credit', 'debit'].includes(amountType)) {
+        return res.status(400).json({ message: `Amount type must be credit or debit for invoice item at index ${i + 1}` });
+      }
+      if (!['cash', 'upi', 'bank', 'other'].includes(paymentMode)) {
+        return res.status(400).json({ message: `Payment mode must be cash, upi, bank, or other for invoice item at index ${i + 1}` });
+      }
+      if (!refId || typeof refId !== 'string' || refId.trim().length === 0) {
+        return res.status(400).json({ message: `Reference ID is required for invoice item at index ${i + 1}` });
+      }
+      if (vendorName && typeof vendorName === 'string' && vendorName.trim().split(/\s+/).length > 100) {
+        return res.status(400).json({ message: `Vendor Name must be max 100 words for invoice item at index ${i + 1}` });
+      }
+    }
+
+    const createdInvoices = [];
+    for (const inv of invoices) {
+      const { purpose, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber, invoiceDate } = inv;
+      const invoiceId = await getNextSequence('invoice');
+      const newInv = await Invoice.create({
+        invoiceId,
+        projectId,
+        invoiceDate: invoiceDate ? new Date(invoiceDate) : new Date(),
+        projectSnapshot: {
+          projectTitle: project.projectTitle,
+          companyName: project.companyName,
+          clientName: project.clientName,
+          phoneNumber: project.phoneNumber,
+          email: project.email,
+          address: project.address,
+        },
+        purpose: purpose.trim(),
+        amount,
+        amountType,
+        paymentMode,
+        refId: refId.trim(),
+        remarks: remarks ? remarks.trim() : undefined,
+        vendorName: vendorName ? vendorName.trim() : undefined,
+        invoiceNumber: invoiceNumber ? invoiceNumber.trim() : undefined,
+        gstNumber: gstNumber ? gstNumber.trim() : undefined,
+        createdBy: req.user!.id,
+        updatedBy: req.user!.id,
+      });
+      createdInvoices.push(newInv);
+    }
+
+    res.status(201).json(createdInvoices);
+  } catch (err) {
+    console.error('Error creating batch invoices:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // POST /admin/invoices
 router.post('/', createInvoiceValidation, handleValidation, async (req: AuthRequest, res: Response) => {
   try {
-    const { projectId, purpose, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber } = req.body;
+    const { projectId, purpose, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber, invoiceDate } = req.body;
     if (purpose.trim().split(/\s+/).length > 100) {
       return res.status(400).json({ message: 'Purpose must be max 100 words' });
     }
@@ -149,6 +230,7 @@ router.post('/', createInvoiceValidation, handleValidation, async (req: AuthRequ
     const invoice = await Invoice.create({
       invoiceId,
       projectId,
+      invoiceDate: invoiceDate ? new Date(invoiceDate) : new Date(),
       projectSnapshot: {
         projectTitle: project.projectTitle,
         companyName: project.companyName,
@@ -182,8 +264,9 @@ router.put('/:id', requireRole('admin'), updateInvoiceValidation, handleValidati
     if (purpose && purpose.trim().split(/\s+/).length > 100) {
       return res.status(400).json({ message: 'Purpose must be max 100 words' });
     }
-    const { purpose: p, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber } = req.body;
+    const { purpose: p, amount, amountType, paymentMode, refId, remarks, vendorName, invoiceNumber, gstNumber, invoiceDate } = req.body;
     const update: Record<string, unknown> = { updatedBy: req.user!.id };
+    if (invoiceDate !== undefined) update.invoiceDate = new Date(invoiceDate);
     if (p !== undefined) update.purpose = p;
     if (amount !== undefined) update.amount = amount;
     if (amountType !== undefined) update.amountType = amountType;

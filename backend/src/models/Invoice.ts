@@ -5,6 +5,7 @@ export interface IInvoice extends Document {
   invoiceId: string;
   projectId: Types.ObjectId;
   projectSnapshot: IProjectSnapshot;
+  invoiceDate: Date;
   purpose: string;
   amount: number;
   amountType: 'credit' | 'debit';
@@ -44,6 +45,7 @@ const invoiceSchema = new Schema<IInvoice>(
     invoiceId: { type: String, required: true, unique: true },
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
     projectSnapshot: { type: projectSnapshotSchema, required: true },
+    invoiceDate: { type: Date, required: true, default: Date.now },
     purpose: { type: String, required: true, maxlength: 5000 },
     amount: { type: Number, required: true, min: 0 },
     amountType: { type: String, enum: ['credit', 'debit'], required: true },
@@ -61,5 +63,6 @@ const invoiceSchema = new Schema<IInvoice>(
 
 invoiceSchema.index({ projectId: 1 });
 invoiceSchema.index({ createdAt: -1 });
+invoiceSchema.index({ invoiceDate: -1 });
 
 export const Invoice = mongoose.model<IInvoice>('Invoice', invoiceSchema);
