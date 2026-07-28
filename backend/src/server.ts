@@ -35,7 +35,19 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 
 // Rate limiting
-const generalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, message: { message: 'Too many requests, try again later' } });
+// The general cap is deliberately generous: it is per-IP, so a whole office
+// behind one NAT address shares a single budget, and the dashboard polls every
+// 30s while issuing a request per filter change. The abuse-sensitive limiters
+// below (login, contact form) stay tight — those are the ones that matter.
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: { message: 'Too many requests, try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Uptime and container health probes should never consume the budget.
+  skip: (req) => req.path === '/health',
+});
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: { message: 'Too many login attempts, try again later' } });
 const webhookLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 30, message: { message: 'Too many webhook requests' } });
 const contactFormLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { message: 'Too many submissions, please wait before trying again' } });

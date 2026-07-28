@@ -1,5 +1,9 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import toast from 'react-hot-toast';
 import { env } from '@dashboard/config/env';
+
+// A burst of rate-limited requests would otherwise stack one toast per request.
+let rateLimitNoticeAt = 0;
 
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
@@ -23,6 +27,10 @@ const createApiClient = (): AxiosInstance => {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
         window.location.href = '/admin-login#/login';
+      }
+      if (error.response?.status === 429 && Date.now() - rateLimitNoticeAt > 10_000) {
+        rateLimitNoticeAt = Date.now();
+        toast.error('Too many requests. Please wait a moment and try again.');
       }
       return Promise.reject(error);
     }

@@ -6,9 +6,9 @@ import {
   Search, Plus, Trash2, Pencil, Maximize2, Minimize2, X, FileText,
   Building2, Phone, Mail, MapPin, TrendingUp, TrendingDown, Calendar,
 } from 'lucide-react';
-import { invoicesService, projectsService } from '@dashboard/services';
+import { invoicesService } from '@dashboard/services';
 import type { CreateInvoicePayload } from '@dashboard/services/invoices.service';
-import { Invoice, Project, ProfitData } from '@dashboard/types';
+import { Invoice, ProfitData } from '@dashboard/types';
 import { QUERY_KEYS, PAYMENT_MODES, REF_ID_LABELS } from '@dashboard/constants';
 import { Badge, Button, ConfirmDialog, EmptyState, Modal } from '@dashboard/components/ui';
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
@@ -16,6 +16,7 @@ import { ErrorState } from '@dashboard/components/ui/ErrorState';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
 import { usePermissions } from '@dashboard/hooks/usePermissions';
+import { useProjectOptions } from '@dashboard/hooks/useProjectOptions';
 
 type PaymentMode = 'cash' | 'upi' | 'bank' | 'other';
 
@@ -79,12 +80,7 @@ export function InvoicesPage() {
       }),
   });
 
-  // Drives the project filter dropdown; the list is small enough to fetch in one page.
-  const { data: filterProjectsData } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS, 'filter'],
-    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
-  });
-  const filterProjects: Project[] = filterProjectsData?.projects ?? [];
+  const { projects: filterProjects } = useProjectOptions();
 
   const { data: profitData } = useQuery({
     queryKey: [QUERY_KEYS.INVOICE_PROFIT, selected?._id],
@@ -769,11 +765,7 @@ function CreateInvoiceModal({ open, onClose }: { open: boolean; onClose: () => v
   const [projectId, setProjectId] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([blankItem()]);
 
-  const { data: projectsData } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS],
-    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
-    enabled: open,
-  });
+  const { projects } = useProjectOptions(open);
 
   const createMutation = useMutation({
     mutationFn: invoicesService.createInvoicesBatch,
@@ -864,8 +856,6 @@ function CreateInvoiceModal({ open, onClose }: { open: boolean; onClose: () => v
       })),
     });
   };
-
-  const projects: Project[] = projectsData?.projects ?? [];
 
   return (
     <Modal open={open} onClose={onClose} title="New Invoice" size="lg">
