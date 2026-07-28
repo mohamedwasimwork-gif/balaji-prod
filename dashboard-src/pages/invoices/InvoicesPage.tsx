@@ -784,6 +784,12 @@ function CreateInvoiceModal({ open, onClose }: { open: boolean; onClose: () => v
       toast.success('Invoices created successfully');
     },
     onError: (error: any) => {
+      // A 404 here means the API predates the batch endpoint — the site and the
+      // API deploy separately, so the browser can be ahead of the server.
+      if (error?.response?.status === 404) {
+        toast.error('The server has not picked up the Billing update yet. Try again in a few minutes.');
+        return;
+      }
       toast.error(error?.response?.data?.message || 'Failed to create invoices');
     },
   });
