@@ -5,20 +5,20 @@ import toast from 'react-hot-toast';
 import {
   Search, Plus, Trash2, Pencil, Maximize2, Minimize2, X, Receipt,
   Building2, Phone, Mail, MapPin, Calendar, TrendingUp, TrendingDown,
-  Download, FileSpreadsheet
+  Download
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { expensesService, projectsService } from '@dashboard/services';
+import { expensesService } from '@dashboard/services';
 import type { CreateExpensePayload } from '@dashboard/services/expenses.service';
-import { Expense, Project, ProfitData } from '@dashboard/types';
+import { Expense, ProfitData } from '@dashboard/types';
 import { QUERY_KEYS, PAYMENT_MODES, REF_ID_LABELS } from '@dashboard/constants';
 import { Badge, Button, ConfirmDialog, EmptyState, Modal } from '@dashboard/components/ui';
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
+import { DownloadLedgerReportModal } from '@dashboard/components/reports/DownloadLedgerReportModal';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
 import { usePermissions } from '@dashboard/hooks/usePermissions';
+import { useProjectOptions } from '@dashboard/hooks/useProjectOptions';
 
 type PaymentMode = 'cash' | 'upi' | 'bank' | 'other';
 
@@ -84,12 +84,7 @@ export function ExpensesPage() {
       }),
   });
 
-  // Drives the project filter dropdown; the list is small enough to fetch in one page.
-  const { data: filterProjectsData } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS, 'filter'],
-    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
-  });
-  const filterProjects: Project[] = filterProjectsData?.projects ?? [];
+  const { projects: filterProjects } = useProjectOptions();
 
   const { data: profitData } = useQuery({
     queryKey: [QUERY_KEYS.EXPENSE_PROFIT, selected?.projectId],
@@ -443,7 +438,7 @@ export function ExpensesPage() {
       )}
 
       {/* Download Report Modal */}
-      <DownloadExpensesReportModal open={showDownloadReport} onClose={() => setShowDownloadReport(false)} />
+      <DownloadLedgerReportModal kind="expenses" open={showDownloadReport} onClose={() => setShowDownloadReport(false)} />
 
       {canDelete && (
         <ConfirmDialog
@@ -784,11 +779,7 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
     }
   ]);
 
-  const { data: projectsData } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS],
-    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
-    enabled: open,
-  });
+  const { projects } = useProjectOptions(open);
 
   const createMutation = useMutation({
     mutationFn: expensesService.createExpensesBatch,
@@ -899,8 +890,6 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
       }))
     });
   };
-
-  const projects: Project[] = projectsData?.projects ?? [];
 
   return (
     <Modal open={open} onClose={onClose} title="New Expense" size="lg">
@@ -1085,337 +1074,3 @@ function CreateExpenseModal({ open, onClose }: { open: boolean; onClose: () => v
   );
 }
 
-function DownloadExpensesReportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-01'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [amountType, setAmountType] = useState<'all' | 'credit' | 'debit'>('all');
-  const [filterProjectId, setFilterProjectId] = useState('all');
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [downloadingExcel, setDownloadingExcel] = useState(false);
-
-  const { data: projectsData } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS],
-    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
-    enabled: open,
-  });
-
-  const projects: Project[] = projectsData?.projects ?? [];
-
-  const handleDownloadPdf = async () => {
-    if (!startDate || !endDate) {
-      toast.error('Please select both start and end dates');
-      return;
-    }
-    setDownloadingPdf(true);
-    try {
-      const filters: any = {
-        limit: 10000,
-        startDate: startOfDay(new Date(startDate)).toISOString(),
-        endDate: endOfDay(new Date(endDate)).toISOString(),
-      };
-      if (amountType !== 'all') {
-        filters.amountType = amountType;
-      }
-      if (filterProjectId !== 'all') {
-        filters.projectId = filterProjectId;
-      }
-
-      const response = await expensesService.getExpenses(filters);
-      const expenses = response.expenses;
-
-      if (expenses.length === 0) {
-        toast.error('No expenses found for the selected filters');
-        return;
-      }
-
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-      // Header
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 30, 30);
-      doc.text('Payment Advice (Expenses) Report', 14, 18);
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Date Range: ${format(new Date(startDate), 'dd MMM yyyy')} to ${format(new Date(endDate), 'dd MMM yyyy')}`, 14, 25);
-      doc.text(`Type: ${amountType.toUpperCase()}`, 14, 30);
-
-      const projectLabel = filterProjectId === 'all'
-        ? 'All Projects'
-        : projects.find((p) => p._id === filterProjectId)?.projectTitle || 'Selected Project';
-      doc.text(`Project: ${projectLabel}`, 14, 35);
-
-      // Divider line
-      doc.setDrawColor(200, 200, 200);
-      doc.line(14, 38, 283, 38);
-
-      const pdfAmount = (amount: number) => `Rs. ${amount.toLocaleString('en-IN')}`;
-
-      const entryToRow = (e: any) => [
-        e.expenseId,
-        format(new Date(e.expenseDate ?? e.createdAt), 'dd MMM yyyy'),
-        e.projectSnapshot?.projectTitle || '',
-        e.purpose,
-        pdfAmount(e.amount),
-        e.amountType.toUpperCase(),
-        e.paymentMode.toUpperCase(),
-        e.refId,
-        e.vendorName || '-',
-        e.invoiceNumber || '-',
-        e.gstNumber || '-',
-      ];
-
-      const tableHeaders = ['ID', 'Date', 'Project', 'Purpose', 'Amount (Rs.)', 'Type', 'Mode', 'Ref ID', 'Vendor', 'Invoice#', 'GST'];
-
-      const totalCredit = expenses
-        .filter((e: any) => e.amountType === 'credit')
-        .reduce((acc: number, e: any) => acc + e.amount, 0);
-
-      const totalDebit = expenses
-        .filter((e: any) => e.amountType === 'debit')
-        .reduce((acc: number, e: any) => acc + e.amount, 0);
-
-      const netBalance = totalCredit - totalDebit;
-
-      // Col styles
-      const txColStyles = {
-        0: { cellWidth: 18 }, // ID
-        1: { cellWidth: 20 }, // Date
-        2: { cellWidth: 32 }, // Project
-        3: { cellWidth: 44 }, // Purpose
-        4: { cellWidth: 26, halign: 'right' as const }, // Amount
-        5: { cellWidth: 14 }, // Type
-        6: { cellWidth: 16 }, // Mode
-        7: { cellWidth: 24 }, // Ref ID
-        8: { cellWidth: 22 }, // Vendor
-        9: { cellWidth: 21 }, // Invoice#
-        10: { cellWidth: 32 }, // GST
-      };
-
-      autoTable(doc, {
-        startY: 42,
-        head: [tableHeaders],
-        body: expenses.map(entryToRow),
-        theme: 'grid',
-        styles: { fontSize: 7, cellPadding: 2 },
-        headStyles: { fillColor: [20, 83, 45], textColor: [255, 255, 255], fontStyle: 'bold' },
-        columnStyles: txColStyles,
-        margin: { left: 14, right: 14 },
-      });
-
-      let y = (doc as any).lastAutoTable.finalY + 8;
-
-      if (y > 175) {
-        doc.addPage();
-        y = 18;
-      }
-
-      // Summary Table
-      autoTable(doc, {
-        startY: y,
-        head: [['Report Summary', '', '']],
-        body: [
-          ['Total Credits (Receipts)', pdfAmount(totalCredit), 'Total Debits (Payments)', pdfAmount(totalDebit)],
-          ['Net Profit / Balance', `${netBalance >= 0 ? '+' : ''}${pdfAmount(netBalance)}`, '', ''],
-        ],
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 3, fontStyle: 'bold' },
-        headStyles: { fillColor: [240, 240, 240], textColor: [30, 30, 30], fontStyle: 'bold', halign: 'center' },
-        columnStyles: {
-          0: { cellWidth: 60 },
-          1: { cellWidth: 74.5, halign: 'right' },
-          2: { cellWidth: 60 },
-          3: { cellWidth: 74.5, halign: 'right' },
-        },
-        margin: { left: 14, right: 14 },
-      });
-
-      // Footer
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(160, 160, 160);
-        doc.text(`Balaji & Co - Payment Advice Report | Page ${i} of ${pageCount}`, 148, 200, { align: 'center' });
-      }
-
-      doc.save(`expenses-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
-      toast.success('PDF report downloaded successfully');
-      onClose();
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to generate PDF report');
-    } finally {
-      setDownloadingPdf(false);
-    }
-  };
-
-  const handleDownloadExcel = async () => {
-    if (!startDate || !endDate) {
-      toast.error('Please select both start and end dates');
-      return;
-    }
-    setDownloadingExcel(true);
-    try {
-      const filters: any = {
-        limit: 10000,
-        startDate: startOfDay(new Date(startDate)).toISOString(),
-        endDate: endOfDay(new Date(endDate)).toISOString(),
-      };
-      if (amountType !== 'all') {
-        filters.amountType = amountType;
-      }
-      if (filterProjectId !== 'all') {
-        filters.projectId = filterProjectId;
-      }
-
-      const response = await expensesService.getExpenses(filters);
-      const expenses = response.expenses;
-
-      if (expenses.length === 0) {
-        toast.error('No expenses found for the selected filters');
-        return;
-      }
-
-      // Generate CSV
-      const csvHeaders = [
-        'Expense ID',
-        'Date',
-        'Project Title',
-        'Company Name',
-        'Purpose',
-        'Amount',
-        'Amount Type',
-        'Payment Mode',
-        'Ref ID',
-        'Vendor Name',
-        'Invoice Number',
-        'GST Number',
-        'Remarks'
-      ];
-
-      const csvRows = expenses.map((e: any) => [
-        e.expenseId,
-        format(new Date(e.expenseDate ?? e.createdAt), 'yyyy-MM-dd'),
-        `"${(e.projectSnapshot?.projectTitle || '').replace(/"/g, '""')}"`,
-        `"${(e.projectSnapshot?.companyName || '').replace(/"/g, '""')}"`,
-        `"${(e.purpose || '').replace(/"/g, '""')}"`,
-        e.amount,
-        e.amountType,
-        e.paymentMode,
-        `"${(e.refId || '').replace(/"/g, '""')}"`,
-        `"${(e.vendorName || '').replace(/"/g, '""')}"`,
-        `"${(e.invoiceNumber || '').replace(/"/g, '""')}"`,
-        `"${(e.gstNumber || '').replace(/"/g, '""')}"`,
-        `"${(e.remarks || '').replace(/"/g, '""')}"`
-      ]);
-
-      const csvContent = [
-        csvHeaders.join(','),
-        ...csvRows.map((row: any) => row.join(','))
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `expenses-report-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast.success('Excel (CSV) report downloaded successfully');
-      onClose();
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to generate Excel report');
-    } finally {
-      setDownloadingExcel(false);
-    }
-  };
-
-  return (
-    <Modal open={open} onClose={onClose} title="Download Expenses Report">
-      <div className="space-y-4">
-        <Modal.Body>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
-              <select
-                value={amountType}
-                onChange={(e) => setAmountType(e.target.value as 'all' | 'credit' | 'debit')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
-              >
-                <option value="all">All (Credits & Debits)</option>
-                <option value="debit">Debits Only</option>
-                <option value="credit">Credits Only</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Project Selection</label>
-              <select
-                value={filterProjectId}
-                onChange={(e) => setFilterProjectId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
-              >
-                <option value="all">All Projects</option>
-                {projects.map((p) => (
-                  <option key={p._id} value={p._id}>{p.projectTitle} — {p.companyName}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <div className="flex gap-2">
-            <Button
-              onClick={handleDownloadExcel}
-              loading={downloadingExcel}
-              disabled={downloadingPdf}
-              variant="secondary"
-              className="flex items-center gap-1.5"
-            >
-              <FileSpreadsheet className="h-4 w-4 text-green-700" /> Export Excel
-            </Button>
-            <Button
-              onClick={handleDownloadPdf}
-              loading={downloadingPdf}
-              disabled={downloadingExcel}
-              className="flex items-center gap-1.5"
-            >
-              <Download className="h-4 w-4" /> Export PDF
-            </Button>
-          </div>
-        </Modal.Footer>
-      </div>
-    </Modal>
-  );
-}

@@ -4,18 +4,20 @@ import { format, startOfDay, endOfDay } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
   Search, Plus, Trash2, Pencil, Maximize2, Minimize2, X, FileText,
-  Building2, Phone, Mail, MapPin, TrendingUp, TrendingDown, Calendar,
+  Building2, Phone, Mail, MapPin, TrendingUp, TrendingDown, Calendar, Download,
 } from 'lucide-react';
-import { invoicesService, projectsService } from '@dashboard/services';
+import { invoicesService } from '@dashboard/services';
 import type { CreateInvoicePayload } from '@dashboard/services/invoices.service';
-import { Invoice, Project, ProfitData } from '@dashboard/types';
+import { Invoice, ProfitData } from '@dashboard/types';
 import { QUERY_KEYS, PAYMENT_MODES, REF_ID_LABELS } from '@dashboard/constants';
 import { Badge, Button, ConfirmDialog, EmptyState, Modal } from '@dashboard/components/ui';
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
+import { DownloadLedgerReportModal } from '@dashboard/components/reports/DownloadLedgerReportModal';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
 import { usePermissions } from '@dashboard/hooks/usePermissions';
+import { useProjectOptions } from '@dashboard/hooks/useProjectOptions';
 
 type PaymentMode = 'cash' | 'upi' | 'bank' | 'other';
 
@@ -47,6 +49,7 @@ export function InvoicesPage() {
   const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
   const [editTarget, setEditTarget] = useState<Invoice | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showDownloadReport, setShowDownloadReport] = useState(false);
   const queryClient = useQueryClient();
   const { canDelete, canEdit, canViewProfit } = usePermissions();
 
@@ -79,12 +82,7 @@ export function InvoicesPage() {
       }),
   });
 
-  // Drives the project filter dropdown; the list is small enough to fetch in one page.
-  const { data: filterProjectsData } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS, 'filter'],
-    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
-  });
-  const filterProjects: Project[] = filterProjectsData?.projects ?? [];
+  const { projects: filterProjects } = useProjectOptions();
 
   const { data: profitData } = useQuery({
     queryKey: [QUERY_KEYS.INVOICE_PROFIT, selected?._id],
@@ -120,6 +118,9 @@ export function InvoicesPage() {
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => setFullscreen(!fullscreen)}>
             {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+          <Button variant="secondary" onClick={() => setShowDownloadReport(true)} className="flex items-center gap-1.5">
+            <Download className="h-4 w-4" /> Download Report
           </Button>
           <Button onClick={() => setShowCreate(true)}>
             <Plus className="h-4 w-4 mr-2" /> New Invoice
@@ -416,6 +417,9 @@ export function InvoicesPage() {
 
       {/* Create Modal */}
       <CreateInvoiceModal open={showCreate} onClose={() => setShowCreate(false)} />
+
+      {/* Download Report Modal */}
+      <DownloadLedgerReportModal kind="invoices" open={showDownloadReport} onClose={() => setShowDownloadReport(false)} />
 
       {/* Edit Modal */}
       {canEdit && (
@@ -769,11 +773,7 @@ function CreateInvoiceModal({ open, onClose }: { open: boolean; onClose: () => v
   const [projectId, setProjectId] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([blankItem()]);
 
-  const { data: projectsData } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_PROJECTS],
-    queryFn: () => projectsService.getAdminProjects({ limit: 100 }),
-    enabled: open,
-  });
+  const { projects } = useProjectOptions(open);
 
   const createMutation = useMutation({
     mutationFn: invoicesService.createInvoicesBatch,
@@ -784,6 +784,12 @@ function CreateInvoiceModal({ open, onClose }: { open: boolean; onClose: () => v
       toast.success('Invoices created successfully');
     },
     onError: (error: any) => {
+      // A 404 here means the API predates the batch endpoint — the site and the
+      // API deploy separately, so the browser can be ahead of the server.
+      if (error?.response?.status === 404) {
+        toast.error('The server has not picked up the Billing update yet. Try again in a few minutes.');
+        return;
+      }
       toast.error(error?.response?.data?.message || 'Failed to create invoices');
     },
   });
@@ -858,8 +864,6 @@ function CreateInvoiceModal({ open, onClose }: { open: boolean; onClose: () => v
       })),
     });
   };
-
-  const projects: Project[] = projectsData?.projects ?? [];
 
   return (
     <Modal open={open} onClose={onClose} title="New Invoice" size="lg">
