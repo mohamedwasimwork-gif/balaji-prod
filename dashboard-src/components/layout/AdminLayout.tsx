@@ -87,6 +87,7 @@ const employeeNavGroups: NavGroup[] = [
     items: [
       { name: 'Payment Advice', href: ROUTES.EXPENSES, icon: Receipt },
       { name: 'Billing', href: ROUTES.INVOICES, icon: FileText },
+      { name: 'Download Report', href: ROUTES.DOWNLOAD, icon: Download },
     ],
   },
 ];

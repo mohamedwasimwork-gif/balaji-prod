@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import mongoose from 'mongoose';
 import { Project } from '../models/Project.js';
 import { Expense } from '../models/Expense.js';
 import { Invoice } from '../models/Invoice.js';
@@ -7,22 +8,34 @@ import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 const router = Router();
 router.use(authMiddleware);
 
-// GET /admin/download/report?companyName=...
+// GET /admin/download/report?companyName=... | ?projectId=...
+// Scoped either to every project of a company, or to a single project.
 router.get('/report', async (req: AuthRequest, res: Response) => {
   try {
-    const { companyName } = req.query;
-    if (!companyName || typeof companyName !== 'string' || !companyName.trim()) {
-      return res.status(400).json({ message: 'companyName query parameter is required' });
+    const { companyName, projectId } = req.query;
+    const hasProjectId = typeof projectId === 'string' && projectId.trim().length > 0;
+    const hasCompanyName = typeof companyName === 'string' && companyName.trim().length > 0;
+
+    if (!hasProjectId && !hasCompanyName) {
+      return res.status(400).json({ message: 'Either projectId or companyName query parameter is required' });
+    }
+    if (hasProjectId && !mongoose.Types.ObjectId.isValid(projectId as string)) {
+      return res.status(400).json({ message: 'Valid Project ID is required' });
     }
 
-    // Find all projects matching company name
-    const projects = await Project.find({
-      companyName: { $regex: companyName.trim(), $options: 'i' },
-    });
+    // A project id is the narrower scope, so it wins when both are supplied.
+    const projects = hasProjectId
+      ? await Project.find({ _id: projectId as string })
+      : await Project.find({ companyName: { $regex: (companyName as string).trim(), $options: 'i' } });
+
+    // Labels the report; falls back to the search term when nothing matched.
+    const scopeLabel = projects[0]
+      ? (hasProjectId ? projects[0].projectTitle : projects[0].companyName)
+      : ((companyName as string) || '').trim();
 
     if (projects.length === 0) {
       return res.json({
-        companyName: companyName.trim(),
+        companyName: scopeLabel,
         generatedAt: new Date().toISOString(),
         projects: [],
         paymentAdvice: { credits: [], creditTotal: 0, debits: [], debitTotal: 0 },
@@ -63,7 +76,7 @@ router.get('/report', async (req: AuthRequest, res: Response) => {
     const sum = (items: any[]) => items.reduce((acc, item) => acc + item.amount, 0);
 
     res.json({
-      companyName: companyName.trim(),
+      companyName: scopeLabel,
       generatedAt: new Date().toISOString(),
       projects: projects.map((p) => ({ projectTitle: p.projectTitle, projectId: p._id })),
       paymentAdvice: {

@@ -11,21 +11,36 @@ import { QUERY_KEYS } from '@dashboard/constants';
 import { Button, EmptyState } from '@dashboard/components/ui';
 import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
+import { usePermissions } from '@dashboard/hooks/usePermissions';
+import { useProjectOptions } from '@dashboard/hooks/useProjectOptions';
 
 export function DownloadPage() {
   const [companyName, setCompanyName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [projectId, setProjectId] = useState('all');
+
+  const { projects: projectOptions } = useProjectOptions();
+  // Credit/debit totals and profit are admin-only across the app.
+  const { canViewProfit } = usePermissions();
+
+  // Picking a project scopes the report to it; otherwise the company search applies.
+  const scope = projectId !== 'all' ? { projectId } : searchQuery ? { companyName: searchQuery } : null;
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: [QUERY_KEYS.DOWNLOAD_REPORT, searchQuery],
-    queryFn: () => downloadService.getReport(searchQuery),
-    enabled: !!searchQuery,
+    queryKey: [QUERY_KEYS.DOWNLOAD_REPORT, projectId, searchQuery],
+    queryFn: () => downloadService.getReport(scope!),
+    enabled: !!scope,
   });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (companyName.trim()) setSearchQuery(companyName.trim());
+    if (!companyName.trim()) return;
+    // A company search replaces any project scope, so the two never fight.
+    setProjectId('all');
+    setSearchQuery(companyName.trim());
   };
+
+  const selectedProject = projectOptions.find((p) => p._id === projectId);
 
   // jsPDF Helvetica does not support the Unicode ₹ symbol (U+20B9) — use "Rs." instead
   const pdfAmount = (amount: number) => `Rs. ${amount.toLocaleString('en-IN')}`;
@@ -83,14 +98,16 @@ export function DownloadPage() {
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(21, 128, 61); // green-700
       doc.text(`Credits (${section.credits.length})`, 14, y);
-      doc.text(`Total: ${pdfAmount(section.creditTotal)}`, 283, y, { align: 'right' });
+      if (canViewProfit) doc.text(`Total: ${pdfAmount(section.creditTotal)}`, 283, y, { align: 'right' });
       y += 2;
 
       autoTable(doc, {
         startY: y,
         head: [tableHeaders],
         body: section.credits.map(entryToRow),
-        foot: [['', '', '', 'TOTAL CREDITS', pdfAmount(section.creditTotal), '', '', '', '', '']],
+        ...(canViewProfit
+          ? { foot: [['', '', '', 'TOTAL CREDITS', pdfAmount(section.creditTotal), '', '', '', '', '']] }
+          : {}),
         theme: 'grid',
         styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [220, 252, 231], textColor: [21, 128, 61], fontStyle: 'bold' },
@@ -107,14 +124,16 @@ export function DownloadPage() {
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(185, 28, 28); // red-700
       doc.text(`Debits (${section.debits.length})`, 14, y);
-      doc.text(`Total: ${pdfAmount(section.debitTotal)}`, 283, y, { align: 'right' });
+      if (canViewProfit) doc.text(`Total: ${pdfAmount(section.debitTotal)}`, 283, y, { align: 'right' });
       y += 2;
 
       autoTable(doc, {
         startY: y,
         head: [tableHeaders],
         body: section.debits.map(entryToRow),
-        foot: [['', '', '', 'TOTAL DEBITS', pdfAmount(section.debitTotal), '', '', '', '', '']],
+        ...(canViewProfit
+          ? { foot: [['', '', '', 'TOTAL DEBITS', pdfAmount(section.debitTotal), '', '', '', '', '']] }
+          : {}),
         theme: 'grid',
         styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [254, 226, 226], textColor: [185, 28, 28], fontStyle: 'bold' },
@@ -133,35 +152,37 @@ export function DownloadPage() {
       y += 10;
     }
 
-    // Profit Summary Box
-    const netProfit = section.creditTotal - section.debitTotal;
-    const profitPct = Math.round(calcProfitPercentage(section.creditTotal, section.debitTotal) * 100) / 100;
-    const isProfit = netProfit >= 0;
-    const summaryFill: [number, number, number] = isProfit ? [220, 252, 231] : [254, 226, 226];
-    const summaryText: [number, number, number] = isProfit ? [21, 128, 61] : [185, 28, 28];
+    // Profit Summary Box — admin only
+    if (canViewProfit) {
+      const netProfit = section.creditTotal - section.debitTotal;
+      const profitPct = Math.round(calcProfitPercentage(section.creditTotal, section.debitTotal) * 100) / 100;
+      const isProfit = netProfit >= 0;
+      const summaryFill: [number, number, number] = isProfit ? [220, 252, 231] : [254, 226, 226];
+      const summaryText: [number, number, number] = isProfit ? [21, 128, 61] : [185, 28, 28];
 
-    // Summary table: 4 columns, total 269mm
-    // Label cols: 60mm each, Value cols: 74.5mm each → 60+74.5+60+74.5 = 269mm
-    autoTable(doc, {
-      startY: y,
-      head: [['Project Profit Summary', '', '', '']],
-      body: [
-        ['Total Credits', pdfAmount(section.creditTotal), 'Total Debits', pdfAmount(section.debitTotal)],
-        ['Net Profit / Loss', `${isProfit ? '+' : ''}${pdfAmount(netProfit)}`, 'Profit %', `${profitPct}%`],
-      ],
-      theme: 'grid',
-      styles: { fontSize: 9, cellPadding: 3, fontStyle: 'bold' },
-      headStyles: { fillColor: summaryFill, textColor: summaryText, fontStyle: 'bold', halign: 'center' },
-      bodyStyles: { fillColor: summaryFill, textColor: summaryText },
-      columnStyles: {
-        0: { cellWidth: 60 },
-        1: { cellWidth: 74.5, halign: 'right' },
-        2: { cellWidth: 60 },
-        3: { cellWidth: 74.5, halign: 'right' },
-      },
-      margin: { left: 14, right: 14 },
-    });
-    y = (doc as any).lastAutoTable.finalY + 12;
+      // Summary table: 4 columns, total 269mm
+      // Label cols: 60mm each, Value cols: 74.5mm each → 60+74.5+60+74.5 = 269mm
+      autoTable(doc, {
+        startY: y,
+        head: [['Project Profit Summary', '', '', '']],
+        body: [
+          ['Total Credits', pdfAmount(section.creditTotal), 'Total Debits', pdfAmount(section.debitTotal)],
+          ['Net Profit / Loss', `${isProfit ? '+' : ''}${pdfAmount(netProfit)}`, 'Profit %', `${profitPct}%`],
+        ],
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 3, fontStyle: 'bold' },
+        headStyles: { fillColor: summaryFill, textColor: summaryText, fontStyle: 'bold', halign: 'center' },
+        bodyStyles: { fillColor: summaryFill, textColor: summaryText },
+        columnStyles: {
+          0: { cellWidth: 60 },
+          1: { cellWidth: 74.5, halign: 'right' },
+          2: { cellWidth: 60 },
+          3: { cellWidth: 74.5, halign: 'right' },
+        },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 12;
+    }
 
     return y;
   };
@@ -262,10 +283,12 @@ export function DownloadPage() {
       csvRows.push(formatEntry(e, 'DEBIT'));
     });
     
-    // Totals for Payment Advice
-    csvRows.push(`,,,,,"Total Credits:",${data.paymentAdvice.creditTotal}`);
-    csvRows.push(`,,,,,"Total Debits:",${data.paymentAdvice.debitTotal}`);
-    csvRows.push(`,,,,,"Net Balance:",${data.paymentAdvice.creditTotal - data.paymentAdvice.debitTotal}`);
+    // Totals for Payment Advice — admin only
+    if (canViewProfit) {
+      csvRows.push(`,,,,,"Total Credits:",${data.paymentAdvice.creditTotal}`);
+      csvRows.push(`,,,,,"Total Debits:",${data.paymentAdvice.debitTotal}`);
+      csvRows.push(`,,,,,"Net Balance:",${data.paymentAdvice.creditTotal - data.paymentAdvice.debitTotal}`);
+    }
     csvRows.push(''); // Empty line
     csvRows.push(''); // Empty line
 
@@ -282,10 +305,12 @@ export function DownloadPage() {
       csvRows.push(formatEntry(e, 'DEBIT'));
     });
     
-    // Totals for Billing
-    csvRows.push(`,,,,,"Total Credits:",${data.billing.creditTotal}`);
-    csvRows.push(`,,,,,"Total Debits:",${data.billing.debitTotal}`);
-    csvRows.push(`,,,,,"Net Balance:",${data.billing.creditTotal - data.billing.debitTotal}`);
+    // Totals for Billing — admin only
+    if (canViewProfit) {
+      csvRows.push(`,,,,,"Total Credits:",${data.billing.creditTotal}`);
+      csvRows.push(`,,,,,"Total Debits:",${data.billing.debitTotal}`);
+      csvRows.push(`,,,,,"Net Balance:",${data.billing.creditTotal - data.billing.debitTotal}`);
+    }
 
     // Create Blob and trigger download
     const csvContent = csvRows.join('\n');
@@ -323,7 +348,9 @@ export function DownloadPage() {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-green-700">Credits ({section.credits.length})</h4>
-              <span className="text-sm font-bold text-green-700">Total: ₹{section.creditTotal.toLocaleString('en-IN')}</span>
+              {canViewProfit && (
+                <span className="text-sm font-bold text-green-700">Total: ₹{section.creditTotal.toLocaleString('en-IN')}</span>
+              )}
             </div>
             <ReportTable entries={section.credits} />
           </div>
@@ -333,13 +360,16 @@ export function DownloadPage() {
           <div className="px-6 py-4 border-t border-gray-100">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-red-700">Debits ({section.debits.length})</h4>
-              <span className="text-sm font-bold text-red-700">Total: ₹{section.debitTotal.toLocaleString('en-IN')}</span>
+              {canViewProfit && (
+                <span className="text-sm font-bold text-red-700">Total: ₹{section.debitTotal.toLocaleString('en-IN')}</span>
+              )}
             </div>
             <ReportTable entries={section.debits} />
           </div>
         )}
 
-        {/* Profit Summary */}
+        {/* Profit Summary — admin only */}
+        {canViewProfit && (
         <div className={`px-6 py-4 border-t border-gray-100 ${isProfit ? 'bg-green-50' : 'bg-red-50'}`}>
           <h4 className={`text-sm font-semibold mb-3 ${isProfit ? 'text-green-700' : 'text-red-700'}`}>
             Project Profit Summary
@@ -367,6 +397,7 @@ export function DownloadPage() {
             </div>
           </div>
         </div>
+        )}
       </div>
     );
   };
@@ -375,16 +406,39 @@ export function DownloadPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Download Report</h1>
-        <p className="text-sm text-gray-500 mt-1">Search by company name to download Payment Advice & Billing report</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Pick a project, or search a company name, to pull its Payment Advice &amp; Billing report
+        </p>
       </div>
 
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-4">
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-4 space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
+          <select
+            value={projectId}
+            onChange={(e) => {
+              setProjectId(e.target.value);
+              // Selecting a project supersedes any company search.
+              if (e.target.value !== 'all') {
+                setSearchQuery('');
+                setCompanyName('');
+              }
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
+          >
+            <option value="all">All Projects (search by company below)</option>
+            {projectOptions.map((p) => (
+              <option key={p._id} value={p._id}>{p.projectTitle} — {p.companyName}</option>
+            ))}
+          </select>
+        </div>
+
         <form onSubmit={handleSearch} className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input
               type="text"
-              placeholder="Enter company name..."
+              placeholder="Or enter company name..."
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               className="pl-9 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
@@ -405,13 +459,21 @@ export function DownloadPage() {
             <EmptyState
               icon={FileSpreadsheet}
               title="No data found"
-              description={`No projects found matching "${searchQuery}". Try a different company name.`}
+              description={
+                selectedProject
+                  ? `No transactions recorded for ${selectedProject.projectTitle} yet.`
+                  : `No projects found matching "${searchQuery}". Try a different company name.`
+              }
             />
           ) : (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500">
-                  Found {data.projects.length} project{data.projects.length !== 1 ? 's' : ''} for <strong>{data.companyName}</strong>
+                  {selectedProject ? (
+                    <>Report for <strong>{selectedProject.projectTitle}</strong> — {selectedProject.companyName}</>
+                  ) : (
+                    <>Found {data.projects.length} project{data.projects.length !== 1 ? 's' : ''} for <strong>{data.companyName}</strong></>
+                  )}
                 </p>
                 <div className="flex gap-2">
                   <Button onClick={handleDownloadExcel} variant="secondary" className="flex items-center gap-1.5">

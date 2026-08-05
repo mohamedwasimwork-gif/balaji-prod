@@ -52,7 +52,8 @@ function App() {
         <Route path="websites" element={<RoleGuard roles={['superadmin']}><WebsitesPage /></RoleGuard>} />
         <Route path="expenses" element={<ExpensesPage />} />
         <Route path="invoices" element={<InvoicesPage />} />
-        <Route path="download" element={<RoleGuard roles={['admin', 'superadmin']}><DownloadPage /></RoleGuard>} />
+        {/* Employees may pull reports too; the page withholds the profit summary from them. */}
+        <Route path="download" element={<DownloadPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
