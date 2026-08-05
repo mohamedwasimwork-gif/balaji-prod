@@ -6,6 +6,7 @@ import { Download, FileSpreadsheet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { Button, Modal } from '@dashboard/components/ui';
+import { usePermissions } from '@dashboard/hooks/usePermissions';
 import { useProjectOptions } from '@dashboard/hooks/useProjectOptions';
 import { expensesService, invoicesService } from '@dashboard/services';
 
@@ -117,6 +118,9 @@ export function DownloadLedgerReportModal({
   const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   const { projects } = useProjectOptions(open);
+  // Credit/debit totals and net profit are admin-only everywhere else in the
+  // app, so the report summary follows the same rule.
+  const { canViewProfit } = usePermissions();
 
   // Returns null when the caller should stop: invalid range, or nothing to report.
   const loadEntries = async (): Promise<LedgerEntry[] | null> => {
@@ -180,14 +184,6 @@ export function DownloadLedgerReportModal({
       // Helvetica has no rupee glyph, so amounts are prefixed "Rs." in PDFs.
       const pdfAmount = (amount: number) => `Rs. ${amount.toLocaleString('en-IN')}`;
 
-      const totalCredit = entries
-        .filter((e) => e.amountType === 'credit')
-        .reduce((acc, e) => acc + e.amount, 0);
-      const totalDebit = entries
-        .filter((e) => e.amountType === 'debit')
-        .reduce((acc, e) => acc + e.amount, 0);
-      const netBalance = totalCredit - totalDebit;
-
       autoTable(doc, {
         startY: 42,
         head: [['ID', 'Date', 'Project', 'Purpose', 'Amount (Rs.)', 'Type', 'Mode', 'Ref ID', 'Vendor', 'Invoice#', 'GST']],
@@ -223,30 +219,40 @@ export function DownloadLedgerReportModal({
         margin: { left: 14, right: 14 },
       });
 
-      let y = (doc as any).lastAutoTable.finalY + 8;
-      if (y > 175) {
-        doc.addPage();
-        y = 18;
-      }
+      if (canViewProfit) {
+        const totalCredit = entries
+          .filter((e) => e.amountType === 'credit')
+          .reduce((acc, e) => acc + e.amount, 0);
+        const totalDebit = entries
+          .filter((e) => e.amountType === 'debit')
+          .reduce((acc, e) => acc + e.amount, 0);
+        const netBalance = totalCredit - totalDebit;
 
-      autoTable(doc, {
-        startY: y,
-        head: [['Report Summary', '', '']],
-        body: [
-          ['Total Credits (Receipts)', pdfAmount(totalCredit), 'Total Debits (Payments)', pdfAmount(totalDebit)],
-          ['Net Profit / Balance', `${netBalance >= 0 ? '+' : ''}${pdfAmount(netBalance)}`, '', ''],
-        ],
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 3, fontStyle: 'bold' },
-        headStyles: { fillColor: [240, 240, 240], textColor: [30, 30, 30], fontStyle: 'bold', halign: 'center' },
-        columnStyles: {
-          0: { cellWidth: 60 },
-          1: { cellWidth: 74.5, halign: 'right' },
-          2: { cellWidth: 60 },
-          3: { cellWidth: 74.5, halign: 'right' },
-        },
-        margin: { left: 14, right: 14 },
-      });
+        let y = (doc as any).lastAutoTable.finalY + 8;
+        if (y > 175) {
+          doc.addPage();
+          y = 18;
+        }
+
+        autoTable(doc, {
+          startY: y,
+          head: [['Report Summary', '', '']],
+          body: [
+            ['Total Credits (Receipts)', pdfAmount(totalCredit), 'Total Debits (Payments)', pdfAmount(totalDebit)],
+            ['Net Profit / Balance', `${netBalance >= 0 ? '+' : ''}${pdfAmount(netBalance)}`, '', ''],
+          ],
+          theme: 'grid',
+          styles: { fontSize: 9, cellPadding: 3, fontStyle: 'bold' },
+          headStyles: { fillColor: [240, 240, 240], textColor: [30, 30, 30], fontStyle: 'bold', halign: 'center' },
+          columnStyles: {
+            0: { cellWidth: 60 },
+            1: { cellWidth: 74.5, halign: 'right' },
+            2: { cellWidth: 60 },
+            3: { cellWidth: 74.5, halign: 'right' },
+          },
+          margin: { left: 14, right: 14 },
+        });
+      }
 
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
