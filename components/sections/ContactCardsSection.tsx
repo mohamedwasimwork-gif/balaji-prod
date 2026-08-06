@@ -6,15 +6,9 @@ import ScrollFadeUp from '@/components/motion/ScrollFadeUp';
 const CARDS = [
   {
     title: 'Project Inquiries',
-    email: 'projects@balaji-co.com',
-    description:
-      'Considering your next renewable project with us? Contact us for detailed information about our solutions and financing options.',
-  },
-  {
-    title: 'Customer Care',
     email: 'support@balaji-co.com',
     description:
-      'Need assistance with your renewable system? Our dedicated support team provides 24/7 help for all your needs.',
+      'Considering your next renewable project with us? Contact us for detailed information about our solutions and financing options.',
   },
 ];
 
@@ -33,7 +27,13 @@ export default function ContactCardsSection() {
             stagger={0.05}
           />
 
-          <ul className="grid gap-6 desktop:grid-cols-2 mobile:grid-cols-1 list-none p-0 m-0">
+          {/* Track the card count so a single card fills the row instead of
+              leaving an empty second column. */}
+          <ul
+            className={`grid gap-6 mobile:grid-cols-1 list-none p-0 m-0 ${
+              CARDS.length > 1 ? 'desktop:grid-cols-2' : 'desktop:grid-cols-1'
+            }`}
+          >
             {CARDS.map((card, i) => (
               <ScrollFadeUp key={card.title} delay={i * 0.12} distance={40}>
                 <li
