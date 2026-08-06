@@ -407,13 +407,22 @@ export function DownloadPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Download Report</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Pick a project, or search a company name, to pull its Payment Advice &amp; Billing report
+          Select a project, or search by company name, to pull its Payment Advice &amp; Billing report
         </p>
       </div>
 
-      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-4 space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
+      <div className="bg-white shadow-sm rounded-xl border border-gray-100 p-4">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search by company name..."
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="pl-9 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
+            />
+          </div>
           <select
             value={projectId}
             onChange={(e) => {
@@ -424,26 +433,13 @@ export function DownloadPage() {
                 setCompanyName('');
               }
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm max-w-[220px] focus:outline-none focus:ring-1 focus:ring-forest-500"
           >
-            <option value="all">All Projects (search by company below)</option>
+            <option value="all">All Projects</option>
             {projectOptions.map((p) => (
               <option key={p._id} value={p._id}>{p.projectTitle} — {p.companyName}</option>
             ))}
           </select>
-        </div>
-
-        <form onSubmit={handleSearch} className="flex gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Or enter company name..."
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="pl-9 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-forest-500"
-            />
-          </div>
           <Button type="submit" disabled={!companyName.trim()}>
             <Search className="h-4 w-4 mr-2" /> Search
           </Button>
