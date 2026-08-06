@@ -27,7 +27,7 @@ export default function FaqSection() {
             className="font-inter text-text-muted text-[15px] leading-[1.6em] opacity-80"
             delay={0.2}
           >
-            Browse answers to frequently asked questions about Balaji &amp; Co solutions.
+            Browse answers to frequently asked questions about Balaji Group of Companies solutions.
           </ParagraphBlurIn>
         </div>
 

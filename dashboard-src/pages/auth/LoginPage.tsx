@@ -39,7 +39,7 @@ export function LoginPage() {
               </svg>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-forest-900">Balaji & Co.</h1>
+          <h1 className="text-2xl font-bold text-forest-900">Balaji Group of Companies</h1>
           <p className="mt-1.5 text-sm text-gray-500">Sign in to your dashboard</p>
         </div>
 

@@ -53,7 +53,7 @@ export default function AboutSection() {
           <ScrollFadeUp delay={0.2} className="w-full desktop:max-w-[52%]">
             <div className="bg-[#606c38] p-6 desktop:p-10 flex flex-col gap-5 desktop:gap-6">
               <p className="type-body text-white/90 leading-relaxed">
-                Balaji &amp; Co has been operating as civil contractors since 2005, with strong
+                Balaji Group of Companies has been operating as civil contractors since 2005, with strong
                 expertise in Wind Turbine Generator (WTG) construction across India. We have
                 successfully delivered complex wind projects, building a solid track record in the
                 renewable energy sector.

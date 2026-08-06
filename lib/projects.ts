@@ -22,7 +22,7 @@ export const PROJECTS: Project[] = [
     client: 'WEG Industries Pvt. Ltd',
     location: 'Vadalivilai, Tirunelveli District, Tamil Nadu',
     overview:
-      'A landmark project involving the AGW 147 – 4.2 MW, one of India\'s largest onsite wind turbines. Balaji & Co delivered this project with full turnkey responsibility.',
+      'A landmark project involving the AGW 147 – 4.2 MW, one of India\'s largest onsite wind turbines. Balaji Group of Companies delivered this project with full turnkey responsibility.',
     scope: [
       'Complete WTG foundation construction',
       'Land development and statutory approvals',
@@ -46,7 +46,7 @@ export const PROJECTS: Project[] = [
     client: 'Regen Powertech Pvt. Ltd',
     location: 'South India',
     overview:
-      'Balaji & Co executed foundation installations for a large fleet of Regen wind turbines across South India, covering varied terrain and soil conditions.',
+      'Balaji Group of Companies executed foundation installations for a large fleet of Regen wind turbines across South India, covering varied terrain and soil conditions.',
     scope: [
       'Construction of 168 WTG foundations',
       'Turbine rating: 1.5 MW per unit',
@@ -94,7 +94,7 @@ export const PROJECTS: Project[] = [
     client: 'ReNew Power Pvt. Ltd',
     location: 'Karnataka',
     overview:
-      'Balaji & Co executed large-scale wind turbine foundation works for ReNew Power across Karnataka, delivering complex civil execution with reliable quality and on-time completion.',
+      'Balaji Group of Companies executed large-scale wind turbine foundation works for ReNew Power across Karnataka, delivering complex civil execution with reliable quality and on-time completion.',
     scope: [
       'WTG foundation construction',
       'Crane pad and access road development',
@@ -118,7 +118,7 @@ export const PROJECTS: Project[] = [
     client: 'Suzlon Energy Ltd',
     location: 'Tirunelveli, Tamil Nadu',
     overview:
-      'Balaji & Co executed civil foundation works for Suzlon S111 wind turbines across Tirunelveli district, delivering high-quality construction under challenging terrain conditions.',
+      'Balaji Group of Companies executed civil foundation works for Suzlon S111 wind turbines across Tirunelveli district, delivering high-quality construction under challenging terrain conditions.',
     scope: [
       'Construction of 45 WTG foundations',
       'Turbine rating: 2.1 MW per unit',

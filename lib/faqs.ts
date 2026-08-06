@@ -5,7 +5,7 @@ export interface Faq {
 
 export const FAQS: Faq[] = [
   {
-    question: 'What services does Balaji & Co provide for wind and solar projects?',
+    question: 'What services does Balaji Group of Companies provide for wind and solar projects?',
     answer:
       'We deliver complete EPC solutions including foundations, crane pads, electrical works, transmission lines, land development, logistics, and site surveys.',
   },

@@ -65,11 +65,11 @@ const inter = Inter({
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'Balaji & Co',
+  name: 'Balaji Group of Companies',
   url: 'https://balaji-co.com',
   logo: 'https://balaji-co.com/images/logo-dark.png',
   description:
-    'Balaji & Co delivers reliable wind and solar EPC solutions with strong engineering, quality construction, and proven multi-state project execution across India.',
+    'Balaji Group of Companies delivers reliable wind and solar EPC solutions with strong engineering, quality construction, and proven multi-state project execution across India.',
   email: 'customers@balaji-co.com',
   address: {
     '@type': 'PostalAddress',
@@ -91,14 +91,14 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://balaji-co.com'),
   title: {
-    template: '%s | Balaji & Co',
-    default: 'Balaji & Co — Wind & Solar EPC Contractors',
+    template: '%s | Balaji Group of Companies',
+    default: 'Balaji Group of Companies — Wind & Solar EPC Contractors',
   },
   description:
-    'Balaji & Co delivers reliable wind and solar EPC solutions with strong engineering, quality construction, and proven multi-state project execution across India.',
+    'Balaji Group of Companies delivers reliable wind and solar EPC solutions with strong engineering, quality construction, and proven multi-state project execution across India.',
   openGraph: {
     type: 'website',
-    siteName: 'Balaji & Co',
+    siteName: 'Balaji Group of Companies',
     images: [{ url: '/og-image.png' }],
   },
   twitter: {

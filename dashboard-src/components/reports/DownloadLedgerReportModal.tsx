@@ -56,7 +56,7 @@ const REPORT_CONFIG: Record<
   expenses: {
     modalTitle: 'Download Expenses Report',
     pdfHeading: 'Payment Advice (Expenses) Report',
-    pdfFooter: 'Balaji & Co - Payment Advice Report',
+    pdfFooter: 'Balaji Group of Companies - Payment Advice Report',
     fileStem: 'expenses-report',
     idHeader: 'Expense ID',
     emptyMessage: 'No expenses found for the selected filters',
@@ -68,7 +68,7 @@ const REPORT_CONFIG: Record<
   invoices: {
     modalTitle: 'Download Invoices Report',
     pdfHeading: 'Billing (Invoices) Report',
-    pdfFooter: 'Balaji & Co - Billing Report',
+    pdfFooter: 'Balaji Group of Companies - Billing Report',
     fileStem: 'invoices-report',
     idHeader: 'Invoice ID',
     emptyMessage: 'No invoices found for the selected filters',

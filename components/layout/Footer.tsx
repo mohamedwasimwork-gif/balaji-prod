@@ -32,14 +32,14 @@ export default function Footer() {
             >
               <Image
                 src="/logo.png"
-                alt="Balaji & Co. logo"
+                alt="Balaji Group of Companies logo"
                 width={140}
                 height={40}
                 className="h-8 w-auto object-contain desktop:h-9"
               />
             </Link>
             <p className="font-inter text-text-muted text-[15px] leading-[1.6em] max-w-sm">
-              Balaji &amp; Co delivers reliable wind and solar infrastructure with strong
+              Balaji Group of Companies delivers reliable wind and solar infrastructure with strong
               engineering, multi-state execution experience, and end-to-end project support for
               large renewable developments.
             </p>
@@ -75,7 +75,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-16 desktop:mt-20 flex flex-col gap-2 tablet:flex-row tablet:items-center tablet:justify-between">
           <p className="font-inter text-text-muted text-[14px]">
-            Balaji &amp; Co. &copy; All rights reserved 2025
+            Balaji Group of Companies &copy; All rights reserved 2025
           </p>
           <a
             href="https://zerocodes.io/"

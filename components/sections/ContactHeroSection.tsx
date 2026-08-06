@@ -79,7 +79,7 @@ export default function ContactHeroSection() {
                 className="font-inter text-text-muted text-[15px] leading-[1.6em] opacity-80 max-w-md"
                 delay={0.2}
               >
-                Join over 100 companies using clean, affordable energy from Balaji &amp; Co.
+                Join over 100 companies using clean, affordable energy from Balaji Group of Companies.
                 Contact our team for a free assessment.
               </ParagraphBlurIn>
             </div>

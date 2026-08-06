@@ -151,7 +151,7 @@ export default function ProjectsGridSection() {
             <div className="max-w-2xl mb-12 bg-neutral-50 p-6 rounded-2xl border border-neutral-200/30">
               <h4 className="type-h3 text-[#606c38] mb-3">Summary of Ongoing Projects</h4>
               <p className="font-inter text-text-muted text-[15px] leading-[1.6em]">
-                Balaji & Co. is currently involved in ongoing wind energy projects across India, supporting the growth of the country’s renewable energy infrastructure. These projects reflect our active role in advancing large-scale wind power development across multiple states.
+                Balaji Group of Companies is currently involved in ongoing wind energy projects across India, supporting the growth of the country’s renewable energy infrastructure. These projects reflect our active role in advancing large-scale wind power development across multiple states.
               </p>
             </div>
           </ScrollFadeUp>

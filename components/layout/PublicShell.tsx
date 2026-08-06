@@ -59,7 +59,7 @@ export default function PublicShell({ children }: { children: React.ReactNode })
             >
               <Image
                 src="/animation.png"
-                alt="Balaji & Co logo"
+                alt="Balaji Group of Companies logo"
                 width={200}
                 height={60}
                 className="h-12 w-auto object-contain desktop:h-16"

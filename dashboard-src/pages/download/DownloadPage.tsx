@@ -235,7 +235,7 @@ export function DownloadPage() {
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(160, 160, 160);
-      doc.text(`Balaji & Co - Confidential | Page ${i} of ${pageCount}`, 148, 200, { align: 'center' });
+      doc.text(`Balaji Group of Companies - Confidential | Page ${i} of ${pageCount}`, 148, 200, { align: 'center' });
     }
 
     doc.save(`report-${data.companyName.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

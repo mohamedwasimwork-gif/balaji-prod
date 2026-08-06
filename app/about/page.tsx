@@ -10,7 +10,7 @@ import FounderStatsSection from '@/components/sections/FounderStatsSection';
 export const metadata: Metadata = {
   title: 'About Us',
   description:
-    'Learn about Balaji & Co, civil contractors since 2005 with expertise in Wind Turbine Generator (WTG) construction and solar power EPC solutions across India.',
+    'Learn about Balaji Group of Companies, civil contractors since 2005 with expertise in Wind Turbine Generator (WTG) construction and solar power EPC solutions across India.',
 };
 
 export default function AboutPage() {

@@ -435,7 +435,7 @@ function SectionEditor({ section, register, watch, setValue }: {
     case 'footer':
       return (
         <div className="space-y-4">
-          <Field label="Company Name" register={register} name="footer.companyName" placeholder="Balaji & Co." />
+          <Field label="Company Name" register={register} name="footer.companyName" placeholder="Balaji Group of Companies" />
           <Field label="Company Description" register={register} name="footer.companyDescription" textarea rows={2} />
           <Field label="Address" register={register} name="footer.address" />
           <div className="grid grid-cols-2 gap-3">

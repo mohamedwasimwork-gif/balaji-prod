@@ -56,7 +56,7 @@ export default function Navigation({ showLogo = true }: NavigationProps) {
           {/* Logo */}
           <Link
             href="/"
-            aria-label="Balaji & Co — home"
+            aria-label="Balaji Group of Companies — home"
             className="flex-shrink-0 -m-2 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm min-w-[140px] min-h-[36px] flex items-center"
           >
             {showLogo && (
@@ -70,7 +70,7 @@ export default function Navigation({ showLogo = true }: NavigationProps) {
               >
                 <Image
                   src="/logo.png"
-                  alt="Balaji & Co logo"
+                  alt="Balaji Group of Companies logo"
                   width={140}
                   height={40}
                   className={`h-8 w-auto object-contain desktop:h-9 transition-all duration-300 ${

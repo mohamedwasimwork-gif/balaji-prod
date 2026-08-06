@@ -131,7 +131,7 @@ export function AdminLayout() {
           </svg>
         </div>
         <div>
-          <h1 className="text-base font-bold text-forest-800 leading-none">Balaji & Co.</h1>
+          <h1 className="text-base font-bold text-forest-800 leading-none">Balaji Group of Companies</h1>
           <p className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">
             {isEmployee ? 'Employee Dashboard' : isSuperAdmin ? 'Super Admin' : 'Admin Dashboard'}
           </p>
@@ -247,7 +247,7 @@ export function AdminLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <span className="ml-3 text-sm font-semibold text-gray-900">
-            {isEmployee ? 'Balaji & Co Employee' : 'Balaji & Co Admin'}
+            {isEmployee ? 'Balaji Group of Companies Employee' : 'Balaji Group of Companies Admin'}
           </span>
         </div>
 
