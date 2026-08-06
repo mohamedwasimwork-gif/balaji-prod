@@ -57,12 +57,15 @@ export default function PublicShell({ children }: { children: React.ReactNode })
                 damping: 18,
               }}
             >
+              {/* animation.png is square; declaring it as 200x60 letterboxed it
+                  inside a wide box, so the mark rendered far smaller than the
+                  height suggested. */}
               <Image
                 src="/animation.png"
                 alt="Balaji Group of Companies logo"
-                width={200}
-                height={60}
-                className="h-12 w-auto object-contain desktop:h-16"
+                width={512}
+                height={512}
+                className="h-32 w-auto object-contain desktop:h-48"
                 priority
               />
             </motion.div>
