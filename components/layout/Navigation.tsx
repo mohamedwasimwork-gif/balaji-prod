@@ -67,17 +67,29 @@ export default function Navigation({ showLogo = true }: NavigationProps) {
                   stiffness: 100,
                   damping: 18,
                 }}
+                className="flex items-center gap-2.5"
               >
+                {/* The old logo.png had the company name baked into the artwork,
+                    so the emblem and the name are split: the mark stays an image
+                    and the name is real text that can be edited and translated.
+                    alt is empty because the adjacent text already names the brand. */}
                 <Image
-                  src="/logo.png"
-                  alt="Balaji Group of Companies logo"
-                  width={140}
-                  height={40}
-                  className={`h-8 w-auto object-contain desktop:h-9 transition-all duration-300 ${
+                  src="/logo-mark.png"
+                  alt=""
+                  width={512}
+                  height={512}
+                  className={`h-8 w-8 flex-shrink-0 object-contain desktop:h-9 desktop:w-9 transition-all duration-300 ${
                     useLightText ? 'brightness-0 invert' : ''
                   }`}
                   priority
                 />
+                <span
+                  className={`font-karma font-medium whitespace-nowrap text-[15px] leading-none tracking-[-0.02em] transition-colors duration-300 desktop:text-[20px] ${
+                    useLightText ? 'text-white' : 'text-text'
+                  }`}
+                >
+                  Balaji Group of Companies
+                </span>
               </motion.div>
             )}
           </Link>

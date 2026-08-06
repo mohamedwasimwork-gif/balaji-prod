@@ -28,15 +28,20 @@ export default function Footer() {
           <div className="flex flex-col gap-5">
             <Link
               href="/"
-              className="hover:opacity-80 transition-opacity w-fit block"
+              aria-label="Balaji Group of Companies — home"
+              className="hover:opacity-80 transition-opacity w-fit flex items-center gap-2.5"
             >
+              {/* Emblem plus live text — see Navigation for why these are split. */}
               <Image
-                src="/logo.png"
-                alt="Balaji Group of Companies logo"
-                width={140}
-                height={40}
-                className="h-8 w-auto object-contain desktop:h-9"
+                src="/logo-mark.png"
+                alt=""
+                width={512}
+                height={512}
+                className="h-8 w-8 flex-shrink-0 object-contain desktop:h-9 desktop:w-9"
               />
+              <span className="font-karma font-medium whitespace-nowrap text-text text-[17px] leading-none tracking-[-0.02em] desktop:text-[20px]">
+                Balaji Group of Companies
+              </span>
             </Link>
             <p className="font-inter text-text-muted text-[15px] leading-[1.6em] max-w-sm">
               Balaji Group of Companies delivers reliable wind and solar infrastructure with strong
