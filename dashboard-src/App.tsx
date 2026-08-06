@@ -44,7 +44,8 @@ function App() {
       >
         <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="leads" element={<RoleGuard roles={['admin', 'superadmin']}><LeadsPage /></RoleGuard>} />
+        {/* Employees get a read-only view; edit and delete are withheld. */}
+        <Route path="leads" element={<LeadsPage />} />
         <Route path="projects" element={<ProjectsListPage />} />
         <Route path="projects/:id" element={<ProjectDetailPage />} />
         <Route path="projects/new" element={<ProjectFormPage />} />

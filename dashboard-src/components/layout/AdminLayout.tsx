@@ -77,6 +77,12 @@ const employeeNavGroups: NavGroup[] = [
     ],
   },
   {
+    label: 'CRM',
+    items: [
+      { name: 'Leads', href: ROUTES.LEADS, icon: Users },
+    ],
+  },
+  {
     label: 'Operations',
     items: [
       { name: 'Projects', href: ROUTES.PROJECTS, icon: FolderKanban },

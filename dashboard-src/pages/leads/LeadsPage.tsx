@@ -11,6 +11,7 @@ import { SectionSpinner } from '@dashboard/components/ui/Spinner';
 import { ErrorState } from '@dashboard/components/ui/ErrorState';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@dashboard/components/ui/Pagination';
 import { useDebounce } from '@dashboard/hooks/useDebounce';
+import { usePermissions } from '@dashboard/hooks/usePermissions';
 
 type StatusFilter = 'all' | 'new' | 'contacted' | 'closed';
 
@@ -36,6 +37,9 @@ export function LeadsPage() {
   const [notesModal, setNotesModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [notes, setNotes] = useState('');
+
+  // Employees read leads only; the API enforces the same rule on PATCH/DELETE.
+  const { canEdit, canDelete } = usePermissions();
 
   const queryClient = useQueryClient();
 
@@ -145,7 +149,7 @@ export function LeadsPage() {
             <table className="min-w-full divide-y divide-gray-100">
               <thead className="bg-gray-50">
                 <tr>
-                  {['Lead', 'Contact', 'Source', 'Date', 'Status', ''].map((h) => (
+                  {['Lead', 'Contact', 'Source', 'Date', 'Status', ...(canEdit || canDelete ? [''] : [])].map((h) => (
                     <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       {h}
                     </th>
@@ -178,16 +182,22 @@ export function LeadsPage() {
                       {format(new Date(lead.createdAt), 'MMM d, yyyy')}
                     </td>
                     <td className="px-6 py-4">{statusBadge(lead.status)}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => openNotesModal(lead)} className="p-1.5 text-forest-600 hover:bg-forest-50 rounded-md" title="Edit / advance status">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => openDeleteModal(lead)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md" title="Delete">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {(canEdit || canDelete) && (
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          {canEdit && (
+                            <button onClick={() => openNotesModal(lead)} className="p-1.5 text-forest-600 hover:bg-forest-50 rounded-md" title="Edit / advance status">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button onClick={() => openDeleteModal(lead)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md" title="Delete">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -209,6 +219,7 @@ export function LeadsPage() {
       </div>
 
       {/* Notes / Status Modal */}
+      {canEdit && (
       <Modal open={notesModal} onClose={() => setNotesModal(false)} title="Update Lead">
         {selectedLead && (
           <>
@@ -237,16 +248,19 @@ export function LeadsPage() {
           </>
         )}
       </Modal>
+      )}
 
       {/* Delete Confirm */}
-      <ConfirmDialog
-        open={deleteModal}
-        onClose={() => setDeleteModal(false)}
-        onConfirm={() => selectedLead && deleteMutation.mutate(selectedLead._id)}
-        title="Delete Lead"
-        message={`Are you sure you want to delete the lead from ${selectedLead?.name}? This cannot be undone.`}
-        loading={deleteMutation.isPending}
-      />
+      {canDelete && (
+        <ConfirmDialog
+          open={deleteModal}
+          onClose={() => setDeleteModal(false)}
+          onConfirm={() => selectedLead && deleteMutation.mutate(selectedLead._id)}
+          title="Delete Lead"
+          message={`Are you sure you want to delete the lead from ${selectedLead?.name}? This cannot be undone.`}
+          loading={deleteMutation.isPending}
+        />
+      )}
     </div>
   );
 }

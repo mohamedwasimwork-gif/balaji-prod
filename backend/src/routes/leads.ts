@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Lead } from '../models/Lead.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import { requireRole } from '../middleware/requireRole.js';
 import { webhookAuth } from '../middleware/webhookAuth.js';
 import { webhookLeadValidation, updateLeadValidation } from '../validators/leads.js';
 import { handleValidation } from '../validators/shared.js';
@@ -176,7 +177,9 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
 });
 
 // ─── Admin: Update lead (status, notes) ─────────────────────────────────────
-router.patch('/:id', authMiddleware, updateLeadValidation, handleValidation, async (req: AuthRequest, res: Response) => {
+// Employees may read leads but never change them, so this is enforced here
+// rather than relying on the dashboard hiding the controls.
+router.patch('/:id', authMiddleware, requireRole('admin'), updateLeadValidation, handleValidation, async (req: AuthRequest, res: Response) => {
   try {
     const { status, notes } = req.body;
     const update: Record<string, unknown> = {};
@@ -200,7 +203,7 @@ router.patch('/:id', authMiddleware, updateLeadValidation, handleValidation, asy
 });
 
 // ─── Admin: Delete lead ─────────────────────────────────────────────────────
-router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authMiddleware, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
     const lead = await Lead.findByIdAndDelete(req.params.id);
     if (!lead) return res.status(404).json({ message: 'Lead not found' });
