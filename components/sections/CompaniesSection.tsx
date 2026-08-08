@@ -18,7 +18,7 @@ const COMPANIES = [
   },
   {
     id: 'renewable-energy',
-    title: 'Balaji Wind Energy Pvt.LTD',
+    title: 'Baalaji Wind Energy Pvt.LTD',
     description:
       'The dedicated wind project execution arm of the group, focused on complete turnkey wind energy EPC installations, grid synchronization, transmission line setups, and structural engineering compliance for modern multi-megawatt turbine installations.',
     icon: <Sun size={24} strokeWidth={1.75} />,
