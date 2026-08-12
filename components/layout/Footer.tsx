@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const CONTACT = {
   email: 'customers@balaji-co.com',
-  address: '11/17, East Street, Shree Ranganarayanapuram, Therumanal, Tirunelveli, Tamil Nadu, 627106, India',
+  address: '11/17, East Street, Shree Ranganarayanapuram, Perumanal, Tirunelveli, Tamil Nadu, 627106, India',
 };
 
 /* Footer-specific link order — matches reference */

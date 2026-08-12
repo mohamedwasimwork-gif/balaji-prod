@@ -73,7 +73,7 @@ const jsonLd = {
   email: 'customers@balaji-co.com',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: '11/17, East Street, Shree Ranganarayanapuram, Therumanal',
+    streetAddress: '11/17, East Street, Shree Ranganarayanapuram, Perumanal',
     addressLocality: 'Tirunelveli',
     addressRegion: 'Tamil Nadu',
     postalCode: '627106',
